@@ -1,22 +1,26 @@
 <div align="center">
 
-# Aspect Code Bench
+# Aspect Bench
 
 **A/B Testing Framework for LLM Code Generation with Knowledge Base Context**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
-[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Aspect%20Code-purple.svg)](https://marketplace.visualstudio.com/items?itemName=aspect-code.aspect-code)
+[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Aspect%20Code-coming%20soon-orange.svg)](https://marketplace.visualstudio.com/items?itemName=aspect-code.aspect-code)
 
 *Measure how project-specific context improves LLM code generation accuracy*
 
 </div>
 
+## About
+
+Learn more about the [Aspect Code extension](https://aspectcode.com) being tested here, or read about [benchmark results](https://www.aspectcode.com/blog/benchmarking-aspect-code).
+
 ---
 
 ## Overview
 
-Aspect Code Bench compares LLM performance across two modes:
+Aspect Bench compares LLM performance across two modes:
 
 | Mode | Description |
 |------|-------------|
@@ -34,7 +38,7 @@ This A/B testing approach measures how much project-specific context improves:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         ASPECT CODE BENCH WORKFLOW                          │
+│                         ASPECT BENCH WORKFLOW                               │
 └─────────────────────────────────────────────────────────────────────────────┘
 
   1. SETUP                    2. GENERATE KB              3. GENERATE PROMPTS
@@ -342,8 +346,8 @@ Generated reports include:
 
 | Provider | Environment Variable | Models |
 |----------|---------------------|--------|
-| Anthropic | `ANTHROPIC_API_KEY` | claude-sonnet-4-*, claude-opus-4-* |
-| OpenAI | `OPENAI_API_KEY` | gpt-4o, gpt-4-turbo |
+| Anthropic | `ANTHROPIC_API_KEY` | Claude Sonnet 4, Claude Opus 4.5, etc. |
+| OpenAI | `OPENAI_API_KEY` | GPT-4.1, GPT-5, etc. |
 
 ---
 

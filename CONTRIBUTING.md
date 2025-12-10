@@ -1,4 +1,4 @@
-# Contributing to Aspect Code Bench
+# Contributing to Aspect Bench
 
 Thank you for your interest in contributing! This document provides guidelines for adding new repositories and creating quality benchmark tasks.
 
