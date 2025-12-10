@@ -1,0 +1,39 @@
+id: search-caching
+name: "Search results caching"
+description: |
+  ## Background
+  Popular search queries are repeated frequently but hit the database every time.
+  Caching common searches can reduce database load significantly.
+  
+  ## Problem
+  The search_function in `searchv2/views.py` performs database queries on
+  every request without caching.
+  
+  ## Task
+  1. Add query-based caching to search results
+  2. Cache key should include the query and any filters
+  3. Use a shorter TTL (1-2 minutes) since search index updates frequently
+  4. Handle cache stampede for popular queries
+  
+  ## Acceptance Criteria
+  - Repeated identical searches use cache
+  - Different queries have different cache entries
+  - Cache is properly invalidated or expires
+  - No stale results for more than 2 minutes
+  - Cache works with filters (category, date, score)
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_caching.py::TestSearchCaching -v"
+difficulty: medium
+tags:
+  - performance
+  - caching
+  - search
+
+baseline_prompt_hint: |
+  Add caching to search results based on query parameters.
+  Use a short TTL and proper cache key generation.
+
+aspect_prompt_hint: |
+  Review the search_function and add caching with cache key generation
+  based on all filter parameters.

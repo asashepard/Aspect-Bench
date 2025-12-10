@@ -1,0 +1,41 @@
+id: grid-lock-permissions
+name: "Grid lock permission enforcement"
+description: |
+  ## Background
+  Grids have an `is_locked` field that should prevent non-moderators from editing.
+  However, this check may not be consistently enforced across all grid-related views.
+  
+  ## Problem
+  In `grid/views.py`, the lock status should be checked before allowing:
+  - Adding/removing packages from a grid
+  - Editing grid features and elements
+  - Modifying grid metadata
+  
+  ## Task
+  1. Create a `@require_unlocked_grid` decorator or mixin
+  2. Return 403 with `{"detail": "Grid is locked", "code": "grid_locked"}` 
+  3. Allow moderators (is_staff or specific permission) to bypass lock
+  4. Apply to all grid modification views
+  
+  ## Acceptance Criteria
+  - Locked grids cannot be modified by regular users
+  - Moderators can modify locked grids
+  - Proper JSON error responses with status codes
+  - All existing grid tests pass
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_grid_permissions.py -v"
+difficulty: medium
+tags:
+  - auth
+  - permissions
+  - grids
+  - django
+
+baseline_prompt_hint: |
+  Enforce the grid lock status in all grid modification views.
+  Return proper error responses when locked grids are modified.
+
+aspect_prompt_hint: |
+  Check grid/models.py for the is_locked field and grid/views.py for modification endpoints.
+  Understand existing permission patterns before adding new checks.

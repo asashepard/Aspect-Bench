@@ -1,0 +1,38 @@
+id: api-package-404
+name: "API package 404 with error schema"
+description: |
+  ## Background
+  The APIv4 package endpoint should return consistent error responses when
+  packages are not found. Currently it may return generic DRF errors.
+  
+  ## Problem
+  Looking at `apiv4/viewsets.py`, the PackageViewSet uses MultiLookupFieldMixin
+  for slug/pk lookups, but 404 responses may not have a consistent schema.
+  
+  ## Task
+  1. Customize the PackageViewSet to return structured 404 errors
+  2. Response format: `{"detail": "Package not found", "code": "not_found", "lookup": "<slug_or_id>"}`
+  3. Apply to both retrieve by ID and by slug
+  4. Ensure list endpoint still works normally
+  
+  ## Acceptance Criteria
+  - GET /api/v4/packages/nonexistent-slug/ returns 404 with proper schema
+  - GET /api/v4/packages/99999/ returns 404 with proper schema
+  - Response includes the lookup value that failed
+  - Successful lookups work as before
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_api_404.py -v"
+difficulty: easy
+tags:
+  - api
+  - error-handling
+  - drf
+
+baseline_prompt_hint: |
+  Customize the PackageViewSet to return structured 404 error responses
+  with detail, code, and lookup fields.
+
+aspect_prompt_hint: |
+  Review apiv4/viewsets.py and apiv4/mixins.py to understand the lookup mechanism.
+  Override the retrieve method or add custom exception handling.

@@ -1,0 +1,51 @@
+id: refactor-auth-dependency
+name: "Refactor shared auth dependency"
+description: |
+  ## Background
+  The backend currently has authentication logic scattered across multiple routers.
+  Each router that needs the current user implements similar patterns for token
+  validation and user retrieval.
+  
+  ## Problem
+  Looking at `backend/app/api/routes/items.py` and `backend/app/api/routes/users.py`,
+  both routers use `CurrentUser` from `deps.py`, but there are subtle inconsistencies
+  in how authentication errors are handled. Some endpoints check `is_superuser`
+  inline, others use `get_current_active_superuser` dependency.
+  
+  ## Task
+  Refactor the authentication pattern to:
+  1. Create a unified `RequireAuth` dependency that can be parameterized
+     (e.g., `RequireAuth(superuser=True)` vs `RequireAuth()`)
+  2. Update all protected endpoints to use this new dependency
+  3. Ensure all auth errors return consistent HTTP status codes and messages
+  4. Preserve all existing behavior - no functional changes, just cleaner code
+  
+  ## Acceptance Criteria
+  - All existing tests continue to pass
+  - New integration tests verify auth behavior is consistent
+  - No endpoint accidentally becomes public or loses protection
+  - Error messages follow the pattern: `{"detail": "<message>"}`
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_auth_refactor.py -v"
+difficulty: hard
+tags:
+  - refactor
+  - fastapi
+  - auth
+  - dependencies
+
+baseline_prompt_hint: |
+  Refactor the authentication dependencies in the FastAPI backend to use a unified,
+  parameterized auth dependency. Update all routers to use it consistently.
+  Make sure all existing tests pass and auth behavior is preserved.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand the dependency graph
+  - .aspect/hotspots.md - identify critical auth-related code
+  - .aspect/flows.md - trace authentication flows
+  - .aspect/findings_top.md - check for existing auth issues
+  
+  Use this knowledge to safely refactor authentication dependencies.
+  Focus on files identified as auth hotspots and preserve all flows.

@@ -1,0 +1,55 @@
+id: rate-limit-login
+name: "Rate limit login endpoint"
+description: |
+  ## Background
+  The login endpoint is vulnerable to brute force attacks.
+  There's no rate limiting to prevent password guessing.
+  
+  ## Problem
+  An attacker can make unlimited login attempts, trying common passwords
+  or credential stuffing attacks. This is a critical security issue.
+  
+  ## Task
+  Implement rate limiting for the login endpoint:
+  
+  1. Track failed login attempts by IP address (or username, or both)
+  2. After 5 failed attempts in 15 minutes, block further attempts
+  3. Return HTTP 429 (Too Many Requests) when blocked
+  4. Include `Retry-After` header with seconds until unblock
+  5. Successful login resets the counter
+  6. Use in-memory storage (dict/cache) - no external dependencies
+  
+  Implementation notes:
+  - Must be test-friendly (in-memory, resettable)
+  - Consider thread-safety if using shared state
+  - Clean up old entries periodically to prevent memory growth
+  
+  ## Acceptance Criteria
+  - 5 failed logins trigger a 15-minute lockout
+  - 429 response includes Retry-After header
+  - Successful login after lockout expires works
+  - Rate limiter state can be reset for testing
+  - No external dependencies (Redis, etc.)
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_rate_limit.py -v"
+difficulty: hard
+tags:
+  - security
+  - rate-limiting
+  - login
+  - auth
+
+baseline_prompt_hint: |
+  Implement in-memory rate limiting for the login endpoint. Block after 5 failed
+  attempts for 15 minutes. Return 429 with Retry-After header when blocked.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand login endpoint dependencies
+  - .aspect/flows.md - trace the authentication flow
+  - .aspect/hotspots.md - identify security-critical code paths
+  - .aspect/findings_top.md - check for existing security issues
+  
+  Use this knowledge to add rate limiting at the right point in the
+  auth flow without breaking existing login behavior.

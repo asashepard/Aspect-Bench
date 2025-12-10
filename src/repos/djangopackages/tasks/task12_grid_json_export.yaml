@@ -1,0 +1,39 @@
+id: grid-json-export
+name: "Grid comparison JSON export"
+description: |
+  ## Background
+  Users want to export grid comparisons as structured data for integration
+  with other tools or for backup purposes.
+  
+  ## Problem
+  Grids display comparison matrices but can't be exported programmatically.
+  
+  ## Task
+  1. Add GET /api/v4/grids/<slug>/export/json/ endpoint
+  2. Include grid metadata, packages, features, and element values
+  3. Structure: `{"grid": {...}, "packages": [...], "features": [...], "matrix": [...]}`
+  4. The matrix should show package-feature intersections
+  
+  ## Acceptance Criteria
+  - Endpoint returns valid JSON with grid data
+  - All packages in grid are included
+  - All features and elements are included
+  - Matrix correctly maps packages to features
+  - 404 for non-existent grids
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_exports.py::TestGridExport -v"
+difficulty: medium
+tags:
+  - api
+  - exports
+  - json
+  - grids
+
+baseline_prompt_hint: |
+  Add a JSON export endpoint for grids that includes the full
+  comparison matrix data.
+
+aspect_prompt_hint: |
+  Review grid/models.py to understand the Package-Feature-Element relationship.
+  Create a nested serializer or custom view for the export.

@@ -1,0 +1,51 @@
+id: db-pool-metrics-endpoint
+name: "Add database connection pool metrics endpoint"
+description: |
+  ## Background
+  In production, it's important to monitor database connection pool health.
+  If the pool is exhausted or connections are leaking, we need visibility.
+  
+  ## Problem
+  Currently there's no way to see the state of the database connection pool.
+  We can't tell if we have connection leaks or if the pool is properly sized.
+  
+  ## Task
+  Add a metrics endpoint for database connection pool status:
+  
+  1. Create GET /api/v1/utils/db-pool-status endpoint
+  2. Return pool metrics:
+     - pool_size: configured pool size
+     - checked_out: connections currently in use
+     - checked_in: idle connections available
+     - overflow: connections beyond pool_size (if using overflow)
+     - invalid: connections marked as invalid
+  3. Require superuser authentication
+  4. Use SQLAlchemy engine pool properties
+  
+  ## Acceptance Criteria
+  - Endpoint returns pool metrics as JSON
+  - Only superusers can access the endpoint
+  - Returns accurate pool statistics
+  - No performance impact on regular operations
+  - Include "healthy" boolean based on pool state
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_pool_metrics.py -v"
+difficulty: easy
+tags:
+  - metrics
+  - database
+  - monitoring
+  - admin
+
+baseline_prompt_hint: |
+  Add a superuser-only endpoint that exposes database connection pool
+  metrics using SQLAlchemy engine pool properties.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand how db sessions are managed
+  - .aspect/architecture.md - find where to add utility endpoints
+  - .aspect/hotspots.md - ensure db.py changes are safe
+  
+  Add monitoring without impacting regular operations.

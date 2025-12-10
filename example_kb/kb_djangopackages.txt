@@ -1,0 +1,500 @@
+# architecture.md
+
+# Context
+
+_Data flow and co-location context. Use to understand which files work together._
+
+## Module Clusters
+
+_Files commonly edited/imported together. Use for feature co-location._
+
+### js
+
+- `static\js\underscore.js`
+- `static\js\htmx.min.js`
+- `static\js\jquery.dataTables.min.js`
+- `static\angular\angular.min.js`
+- `static\js\clipboard.min.js`
+- `static\js\gh3.js`
+
+### js
+
+- `static\js\jquery.tools.min.js`
+- `tailwind.config.js`
+- `static\js\gh3.js`
+- `static\js\jquery.tablesorter.min.js`
+- `static\js\clipboard.min.js`
+- `static\angular\angular.min.js`
+
+### scripts
+
+- `scripts\update_contributors.py`
+- `static\js\svg-sparkline.js`
+- `tailwind.config.js`
+- `feeds\models.py`
+- `settings.py`
+- `searchv2\views.py`
+
+### products
+
+- `products\models.py`
+- `feeds\models.py`
+- `tailwind.config.js`
+- `searchv2\views.py`
+- `searchv2\management\commands\searchv2_build.py`
+
+### repos
+
+- `package\repos\base_handler.py`
+- `profiles\models.py`
+- `searchv2\utils.py`
+- `package\models.py`
+- `static\components\component-jQuery\index.js`
+- `urls.py`
+
+### searchv2
+
+- `searchv2\models.py`
+- `searchv2\utils.py`
+- `grid\models.py`
+- `package\models.py`
+- `static\components\component-jQuery\index.js`
+- `static\js\jquery.tablesorter.min.js`
+
+### searchv2
+
+- `searchv2\builders_v3.py`
+- `searchv2\utils.py`
+- `static\js\timesheet.js`
+- `core\utils.py`
+
+### profiles
+
+- `profiles\forms.py`
+- `grid\models.py`
+- `package\models.py`
+- `favorites\models.py`
+
+## Critical Flows
+
+_Most central modules by connectivity. Changes here propagate widely._
+
+| Module | Callers | Dependencies |
+|--------|---------|--------------|n| `tailwind.config.js` | 96 | 2 |
+| `feeds\models.py` | 86 | 0 |
+| `static\js\htmx.min.js` | 81 | 0 |
+| `settings.py` | 50 | 5 |
+| `static\js\jquery.dataTables.min.js` | 46 | 5 |
+| `searchv2\views.py` | 40 | 17 |
+| `core\fields.py` | 48 | 0 |
+| `searchv2\rules.py` | 39 | 11 |
+
+## Dependency Chains
+
+_How modules chain together. Useful for tracing data flow._
+
+```
+tailwind.config.js → static\js\htmx.min.js
+```
+
+```
+settings.py → static\js\underscore.js → static\js\htmx.min.js
+```
+
+## External Integrations
+
+_Connections to external services._
+
+**HTTP/API Clients:**
+- `core\utils.py`: External integration: HTTP Client (requests)
+- `core\utils.py`: External integration: HTTP Client (requests)
+- `package\management\commands\cleanup_github_projects.py`: External integration: HTTP Client (requests)
+
+**Message Queues:**
+- `settings.py`: External integration: Cache (Redis)
+- `static\js\jquery.dataTables.js`: External integration: Message Queue (Bull/Redis)
+
+**Other:**
+- `static\js\jquery.dataTables.js`: External integration: Payment (Stripe)
+
+## Request Flow Pattern
+
+_How a typical request flows through the architecture._
+
+**React Data Flow:**
+```
+Components → Hooks → State/Context → API Calls → Server
+```
+
+---
+
+## Quick Reference
+
+**"What files work together for feature X?"**
+→ Check Module Clusters above.
+
+**"Where does data flow from this endpoint?"**
+→ Check Critical Flows and Dependency Chains.
+
+**"Where are external connections?"**
+→ Check External Integrations.
+
+
+# map.md
+
+# Map
+
+_Symbol index with signatures and conventions. Use to find types, functions, and coding patterns._
+
+## Data Models
+
+_Core data structures. Check these before modifying data handling._
+
+### ORM / Database Models
+
+**`blog\apps.py`**: ORM Model (Django) - BlogConfig
+
+**`classifiers\apps.py`**: ORM Model (Django) - ClassifiersConfig
+
+**`core\context_processors.py`**: ORM Model (Django)
+
+**`core\models.py`**: ORM Model (Django) - BaseModel
+
+**`favorites\apps.py`**: ORM Model (Django) - FavoritesConfig
+
+**`favorites\migrations\0001_initial.py`**: ORM Model (Django) - Migration
+
+**`favorites\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`favorites\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`favorites\models.py`**: ORM Model (Django) - Favorite
+
+**`grid\context_processors.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+### Pydantic / Data Classes
+
+**`blog\models.py`**: Data Model (Pydantic) - Post
+
+**`classifiers\models.py`**: Data Model (Pydantic) - Classifier
+
+**`core\models.py`**: ORM Model (Django) - BaseModel
+
+**`favorites\models.py`**: Data Model (Pydantic) - Favorite
+
+**`grid\models.py`**: Data Model (Pydantic) - Grid
+
+**`grid\models.py`**: Data Model (Pydantic) - Meta
+
+**`grid\models.py`**: Data Model (Pydantic) - Feature
+
+**`grid\models.py`**: Data Model (Pydantic) - Element
+
+**`homepage\models.py`**: Data Model (Pydantic) - Dpotw
+
+**`homepage\models.py`**: Data Model (Pydantic) - Gotw
+
+**`homepage\models.py`**: Data Model (Pydantic) - PSA
+
+**`package\repos\forgejo.py`**: Data Class (dataclass) - class
+
+**`products\models.py`**: Data Model (Pydantic) - Product
+
+**`products\models.py`**: Data Model (Pydantic) - Release
+
+**`profiles\models.py`**: Data Model (Pydantic) - Profile
+
+### Other Data Structures
+
+- `blog\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `blog\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `classifiers\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `classifiers\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `classifiers\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `favorites\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `favorites\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `grid\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `grid\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `grid\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+
+## Symbol Index
+
+_Functions, classes, and exports with call relationships._
+
+### `searchv2\rules.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `CheckResult` | class | `class CheckResult(BaseModel)` | — |
+| `ScoreRule` | class | `class ScoreRule(BaseModel)` | — |
+| `ScoreRuleGroup` | class | `class ScoreRuleGroup(ScoreRule)` | `demo_rules_v3`, `demo_rules_v3` |
+| `DeprecatedRule` | class | `class DeprecatedRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `FavoritePackageRule` | class | `class FavoritePackageRule(ScoreRule)` | — |
+| `DescriptionRule` | class | `class DescriptionRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `DocumentationRule` | class | `class DocumentationRule(ScoreRule)` | — |
+| `DownloadsRule` | class | `class DownloadsRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `ForkRule` | class | `class ForkRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `LastUpdatedRule` | class | `class LastUpdatedRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `RecentReleaseRule` | class | `class RecentReleaseRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `UsageCountRule` | class | `class UsageCountRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+
+_+1 more symbols_
+
+### `package\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `RepoHost` | class | `class RepoHost(models.TextChoices)` | — |
+| `NoPyPiVersionFound` | class | `class NoPyPiVersionFound(Exception)` | — |
+| `Category` | class | `class Category(BaseModel)` | `views`, `forms` |
+| `Package` | class | `class Package(BaseModel)` | `sitemaps`, `urls` |
+| `FlaggedPackage` | class | `class FlaggedPackage(BaseModel)` | `views`, `forms` |
+| `PackageExample` | class | `class PackageExample(BaseModel)` | `views`, `forms` |
+| `Commit` | class | `class Commit(BaseModel)` | — |
+| `VersionManager` | class | `class VersionManager(models.Manager)` | — |
+| `Version` | class | `class Version(BaseModel)` | — |
+
+### `grid\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Grid` | class | `class Grid(BaseModel)` | `viewsets`, `serializers` |
+| `GridPackage` | class | `class GridPackage(BaseModel)` | `forms`, `forms` |
+| `Feature` | class | `class Feature(BaseModel)` | `forms`, `forms` |
+| `Element` | class | `class Element(BaseModel)` | `forms`, `forms` |
+
+### `package\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `repo_data_for_js` | function | `def repo_data_for_js()` | — |
+| `get_form_class` | function | `def get_form_class(form_name)` | — |
+| `add_package` | function | `def add_package(request, template_name)` | — |
+| `edit_package` | function | `def edit_package(request, slug, template_name)` | — |
+| `flag_package` | function | `def flag_package(request, slug, template_name)` | — |
+| `flag_approve` | function | `def flag_approve(request, slug)` | — |
+| `flag_remove` | function | `def flag_remove(request, slug)` | — |
+| `add_example` | function | `def add_example(request, slug, template_name)` | — |
+| `edit_example` | function | `def edit_example(request, slug, id)` | — |
+| `delete_example` | function | `def delete_example(request, slug, id)` | — |
+| `confirm_delete_example` | function | `def confirm_delete_example(request, slug, id)` | — |
+| `PackageListView` | class | `class PackageListView(TemplateView)` | — |
+
+_+13 more symbols_
+
+### `blog\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Post` | class | `class Post(BaseModel)` | `sitemaps`, `feeds` |
+
+### `package\repos\base_handler.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `BaseHandler` | class | `class BaseHandler` | `bitbucket`, `bitbucket` |
+
+### `tests\conftest.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `category` | function | `def category()` | — |
+| `grid` | function | `def grid()` | — |
+| `package` | function | `def package()` | — |
+
+### `profiles\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Profile` | class | `class Profile(BaseModel)` | `views`, `resources` |
+| `ExtraField` | class | `class ExtraField(BaseModel)` | `views`, `views` |
+
+### `scripts\update_contributors.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `main` | function | `def main()` | — |
+| `iter_recent_authors` | function | `def iter_recent_authors()` | — |
+| `ContributorsJSONFile` | class | `class ContributorsJSONFile` | — |
+| `write_md_file` | function | `def write_md_file(contributors)` | — |
+
+### `searchv2\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `remove_prefix` | function | `def remove_prefix(value)` | `builders_v3`, `builders_v3` |
+| `clean_title` | function | `def clean_title(value)` | `builders_v3`, `builders_v3` |
+
+### `searchv2\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `build_search` | function | `def build_search(request, template_name)` | — |
+| `search_function` | function | `def search_function(q, max_weight)` | `viewsets` |
+| `search` | function | `def search(request, template_name)` | `angular.min`, `controllers` |
+| `search2` | function | `def search2(request, template_name)` | — |
+| `search3` | function | `def search3(request, template_name)` | — |
+| `search_packages_autocomplete` | function | `def search_packages_autocomplete(request)` | — |
+| `SearchListAPIView` | class | `class SearchListAPIView(ListAPIView)` | — |
+| `SearchDetailAPIView` | class | `class SearchDetailAPIView(RetrieveAPIView)` | — |
+| `OpenSearchDescription` | class | `class OpenSearchDescription(TemplateView)` | — |
+| `OpenSearchSuggestions` | class | `class OpenSearchSuggestions(View)` | — |
+
+### `searchv2\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `SearchV2` | class | `class SearchV2(BaseModel)` | `viewsets`, `serializers` |
+
+### `grid\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `build_element_map` | function | `def build_element_map(elements)` | — |
+| `GridListView` | class | `class GridListView(SingleTableView)` | — |
+| `add_grid` | function | `def add_grid(request, template_name)` | — |
+| `edit_grid` | function | `def edit_grid(request, slug, template_name)` | — |
+| `add_feature` | function | `def add_feature(request, grid_slug, template_name)` | — |
+| `edit_feature` | function | `def edit_feature(request, id, template_name)` | — |
+| `delete_feature` | function | `def delete_feature(request, id, template_name)` | — |
+| `delete_grid_package` | function | `def delete_grid_package(request, id, template_name)` | — |
+| `add_grid_package` | function | `def add_grid_package(request, grid_slug, template_name)` | — |
+| `add_new_grid_package` | function | `def add_new_grid_package(request, grid_slug, template_name)` | — |
+| `ajax_grid_list` | function | `def ajax_grid_list(request, template_name)` | — |
+| `grid_detail` | function | `def grid_detail(request, slug, template_name)` | — |
+
+_+4 more symbols_
+
+### `searchv2\builders_v3.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `build_1` | function | `def build_1(*, verbose)` | `views`, `searchv3_build` |
+| `index_packages` | function | `def index_packages(*, verbose)` | — |
+| `index_groups` | function | `def index_groups(verbose)` | — |
+
+### `homepage\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `OpenView` | class | `class OpenView(TemplateView)` | — |
+| `ReadinessView` | class | `class ReadinessView(TemplateView)` | — |
+| `ReadinessDetailView` | class | `class ReadinessDetailView(TemplateView)` | — |
+| `homepage` | function | `def homepage(request, template_name)` | `views`, `views` |
+| `error_404_view` | function | `def error_404_view(request)` | — |
+| `error_500_view` | function | `def error_500_view(request)` | — |
+| `error_503_view` | function | `def error_503_view(request)` | — |
+
+### `apiv3\tests\data.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `BaseData` | class | `class BaseData(TestCase)` | — |
+
+### `apiv4\mixins.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `MultiLookupFieldMixin` | class | `class MultiLookupFieldMixin` | `viewsets`, `viewsets` |
+
+### `homepage\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `RotatorManager` | class | `class RotatorManager(models.Manager)` | — |
+| `Dpotw` | class | `class Dpotw(BaseModel)` | `views`, `views` |
+| `Gotw` | class | `class Gotw(BaseModel)` | `views`, `views` |
+| `PSA` | class | `class PSA(BaseModel)` | `views`, `views` |
+
+### `favorites\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Favorite` | class | `class Favorite(BaseModel)` | `views`, `views` |
+
+### `package\repos\forgejo.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `ForgejoMetadata` | class | `class ForgejoMetadata` | — |
+| `ForgejoCommit` | class | `class ForgejoCommit` | — |
+| `ForgejoClient` | class | `class ForgejoClient` | `codeberg`, `codeberg` |
+| `ForgejoHandler` | class | `class ForgejoHandler(BaseHandler)` | `codeberg`, `codeberg` |
+
+### `apiv3\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `GET_int` | function | `def GET_int(request, value_name, default)` | — |
+| `calc_next` | function | `def calc_next(request, limit, offset)` | — |
+| `calc_previous` | function | `def calc_previous(request, limit, offset)` | — |
+| `grid_detail` | function | `def grid_detail(request, slug)` | — |
+| `grid_list` | function | `def grid_list(request)` | — |
+| `package_detail` | function | `def package_detail(request, slug)` | — |
+| `package_list` | function | `def package_list(request)` | — |
+| `category_list` | function | `def category_list(request)` | — |
+| `category_detail` | function | `def category_detail(request, slug)` | — |
+| `user_list` | function | `def user_list(request)` | — |
+| `user_detail` | function | `def user_detail(request, github_account)` | — |
+| `grid_packages_list` | function | `def grid_packages_list(request, slug)` | — |
+
+_+1 more symbols_
+
+### `core\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `BaseModel` | class | `class BaseModel(models.Model)` | `models`, `models` |
+
+### `core\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `cache_fetcher` | function | `def cache_fetcher(cachekey_func, identifier_model)` | — |
+| `oc_slugify` | function | `def oc_slugify(value)` | — |
+| `get_pypi_url` | function | `def get_pypi_url(title, timeout)` | — |
+| `PackageStatus` | class | `class PackageStatus(models.IntegerChoices)` | `models` |
+| `status_choices_switch` | function | `def status_choices_switch(status)` | `models` |
+| `get_repo_from_url` | function | `def get_repo_from_url(url)` | — |
+| `healthcheck` | function | `def healthcheck(url, timeout)` | `searchv3_build`, `searchv2_build` |
+
+---
+
+## Conventions
+
+_Naming patterns and styles. Follow these for consistency._
+
+### File Naming
+
+| Pattern | Example | Count |
+|---------|---------|-------|
+| snake_case | `__init__.py` | 116 |
+| kebab-case | `svg-sparkline.js` | 4 |
+| camelCase | `jquery.dataTables.min.js` | 2 |
+| PascalCase | `Gruntfile.js` | 1 |
+
+**Use:** snake_case for new files.
+
+### Function Naming
+
+- `get_*` → `get_url` (15 occurrences)
+- `set_*` → `setHeadersCss` (1 occurrences)
+- `update_*` → `updateHeaderSortCount` (1 occurrences)
+- `is_*` → `isValueInArray` (1 occurrences)
+
+### Framework Patterns
+
+**Django:**
+- Models in `models.py`, views in `views.py`
+- URL patterns in `urls.py`
+- Forms in `forms.py`

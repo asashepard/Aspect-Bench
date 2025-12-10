@@ -1,0 +1,54 @@
+id: optimize-items-query
+name: "Optimize items query (N+1 / unnecessary queries)"
+description: |
+  ## Background
+  The items list endpoint may have inefficient database query patterns.
+  As the number of items grows, performance degrades.
+  
+  ## Problem
+  Potential issues in the current implementation:
+  1. Multiple queries where one would suffice
+  2. Loading related data inefficiently
+  3. Count query separate from data query (could be optimized)
+  4. No query result caching consideration
+  
+  ## Task
+  Optimize the items query logic:
+  
+  1. Analyze the current query pattern in `read_items` function
+  2. Reduce the number of database roundtrips
+  3. Use efficient SQLAlchemy/SQLModel patterns (joinedload, selectinload, etc.)
+  4. Ensure the total query count for listing items is O(1), not O(n)
+  
+  Performance target:
+  - Listing 100 items should require at most 2-3 database queries
+  - Currently it may be O(n) due to lazy loading or inefficient patterns
+  
+  ## Acceptance Criteria
+  - List endpoint with 50+ items uses <= 3 DB queries
+  - Response time is measurably faster for large datasets
+  - Functionality is preserved (same response format)
+  - Tests verify query count using a counter/mock
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_query_optimization.py -v"
+difficulty: hard
+tags:
+  - performance
+  - database
+  - optimization
+  - items
+
+baseline_prompt_hint: |
+  Optimize the items list endpoint to minimize database queries. Target is 
+  <= 3 queries for any number of items. Use efficient loading strategies.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand database access patterns
+  - .aspect/flows.md - trace data loading flows
+  - .aspect/hotspots.md - identify performance-critical code
+  - .aspect/findings_top.md - check for existing perf issues
+  
+  Use this knowledge to identify exactly where inefficient queries occur
+  and optimize without breaking data integrity.

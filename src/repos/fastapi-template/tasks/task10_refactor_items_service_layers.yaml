@@ -1,0 +1,58 @@
+id: refactor-items-service-layers
+name: "Refactor items service into read/write layers"
+description: |
+  ## Background
+  The current items implementation mixes read and write operations in the same
+  router file. As the application grows, this becomes hard to maintain and test.
+  
+  ## Problem
+  - All CRUD logic is in `items.py` router
+  - No separation between read and write concerns
+  - Difficult to add caching for reads without affecting writes
+  - Business logic mixed with HTTP handling
+  - Hard to unit test business logic independently
+  
+  ## Task
+  Refactor items into a clean service layer architecture:
+  
+  1. Create `backend/app/services/` directory
+  2. Create `items_read_service.py` for read operations:
+     - `get_item(session, id, user)` 
+     - `list_items(session, user, skip, limit)`
+  3. Create `items_write_service.py` for write operations:
+     - `create_item(session, item_in, user)`
+     - `update_item(session, id, item_in, user)`
+     - `delete_item(session, id, user)`
+  4. Update router to delegate to services
+  5. Keep HTTP concerns (status codes, response models) in router
+  6. Move business logic (permission checks, etc.) to services
+  
+  ## Acceptance Criteria
+  - All existing item tests continue to pass
+  - Router is thin - delegates to services
+  - Services are importable and testable independently
+  - Clear separation between read and write operations
+  - No direct database model imports in router (uses services)
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_service_layers.py -v"
+difficulty: hard
+tags:
+  - refactor
+  - architecture
+  - services
+  - items
+
+baseline_prompt_hint: |
+  Refactor items into read/write service layers. Create a services/ directory
+  with items_read_service.py and items_write_service.py. Update router to delegate.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand current items dependencies
+  - .aspect/flows.md - trace read vs write flows
+  - .aspect/hotspots.md - identify complex business logic
+  - .aspect/findings_top.md - check for coupling issues
+  
+  Use this knowledge to design service boundaries that align with
+  actual usage patterns and minimize disruption.

@@ -1,0 +1,57 @@
+id: add-csv-export
+name: "Add CSV export endpoint"
+description: |
+  ## Background
+  Users need to export their items data for reporting, backup, or migration.
+  Currently there's no export functionality.
+  
+  ## Problem
+  - No way to bulk export items data
+  - Users cannot easily backup their items
+  - Integration with spreadsheet tools is not possible
+  
+  ## Task
+  Add a CSV export endpoint for items:
+  
+  1. Create `GET /api/v1/items/export` endpoint
+  2. Return items as CSV with proper Content-Type header
+  3. Include columns: id, title, description, created_at (if available)
+  4. Respect user permissions (regular users get only their items)
+  5. Set appropriate filename in Content-Disposition header
+  
+  CSV format:
+  ```
+  id,title,description,created_at
+  uuid-1,Item 1,Description 1,2024-01-01T00:00:00Z
+  uuid-2,Item 2,Description 2,2024-01-02T00:00:00Z
+  ```
+  
+  ## Acceptance Criteria
+  - Endpoint returns Content-Type: text/csv
+  - Content-Disposition suggests a filename like items_export.csv
+  - CSV has proper header row
+  - Data rows match the user's accessible items
+  - Empty result returns header row only
+  - Large exports work without memory issues (streaming if needed)
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_csv_export.py -v"
+difficulty: medium
+tags:
+  - feature
+  - export
+  - csv
+  - items
+
+baseline_prompt_hint: |
+  Add a GET /items/export endpoint that returns items as CSV with proper
+  headers (Content-Type, Content-Disposition). Include id, title, description columns.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand items endpoint structure
+  - .aspect/flows.md - trace how items are queried
+  - .aspect/findings_top.md - check for related issues
+  
+  Use this knowledge to add the export endpoint in the right place
+  and ensure it follows existing patterns for auth and permissions.

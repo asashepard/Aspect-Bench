@@ -1,0 +1,55 @@
+id: soft-delete-items
+name: "Soft delete items"
+description: |
+  ## Background
+  Currently, deleting an item permanently removes it from the database.
+  For audit trails and potential recovery, soft deletion is preferred.
+  
+  ## Problem
+  When an item is deleted:
+  - It's permanently gone from the database
+  - No audit trail exists
+  - Accidental deletions cannot be recovered
+  - Related analytics/reporting may be affected
+  
+  ## Task
+  Implement soft deletion for items:
+  
+  1. Add `is_deleted` boolean field to Item model (default: False)
+  2. Add `deleted_at` timestamp field (nullable)
+  3. Update DELETE endpoint to set `is_deleted=True` and `deleted_at=now()`
+  4. Update GET /items/ to exclude soft-deleted items
+  5. Update GET /items/{id} to return 404 for soft-deleted items
+  6. Keep the item in the database for audit purposes
+  
+  Optional (bonus): Add an admin endpoint to list deleted items.
+  
+  ## Acceptance Criteria
+  - DELETE endpoint returns success but item remains in DB
+  - Deleted items don't appear in list endpoint
+  - GET /items/{id} returns 404 for deleted items
+  - Item's `is_deleted` and `deleted_at` fields are correctly set
+  - Database migration handles existing items (is_deleted=False)
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_soft_delete.py -v"
+difficulty: hard
+tags:
+  - feature
+  - items
+  - database
+  - soft-delete
+
+baseline_prompt_hint: |
+  Implement soft deletion for items by adding is_deleted and deleted_at fields.
+  Update DELETE to soft-delete and filter out deleted items from queries.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand Item model dependencies
+  - .aspect/flows.md - trace all item query paths
+  - .aspect/hotspots.md - identify frequently accessed item code
+  - .aspect/findings_top.md - check for related issues
+  
+  Use this knowledge to implement soft delete without missing any
+  query paths that need to filter deleted items.

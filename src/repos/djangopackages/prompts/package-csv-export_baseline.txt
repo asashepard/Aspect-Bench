@@ -1,0 +1,610 @@
+# Project Structure
+
+```
+djangopackages/
+├── __init__.py
+├── manage.py
+├── settings.py
+├── urls.py
+├── conftest.py
+├── apiv3/
+│   ├── __init__.py
+│   ├── resources.py
+│   ├── urls.py
+│   └── views.py
+├── apiv4/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── mixins.py
+│   ├── serializers.py
+│   ├── urls.py
+│   └── viewsets.py
+├── core/
+│   ├── __init__.py
+│   ├── models.py
+│   └── utils.py
+├── grid/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   ├── views.py
+│   └── tests/
+│       ├── test_views.py
+│       └── test_models.py
+├── homepage/
+│   ├── __init__.py
+│   ├── models.py
+│   └── views.py
+├── package/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── forms.py
+│   ├── managers.py
+│   ├── models.py
+│   ├── signals.py
+│   ├── urls.py
+│   ├── utils.py
+│   ├── views.py
+│   └── tests/
+│       ├── test_views.py
+│       └── test_models.py
+├── profiles/
+│   ├── __init__.py
+│   └── models.py
+├── searchv2/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── utils.py
+│   └── views.py
+└── templates/
+```
+
+# Relevant source files
+
+## apiv4/viewsets.py
+```python
+from rest_framework import mixins, viewsets
+from rest_framework.response import Response
+
+from grid.models import Grid
+from package.models import Category, Package
+from searchv2.models import SearchV2
+from searchv2.views import search_function
+
+from .mixins import MultiLookupFieldMixin
+from .serializers import (
+    CategorySerializer,
+    GridSerializer,
+    PackageSerializer,
+    SearchV2Serializer,
+)
+
+
+class SearchV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Accepts a 'q' GET parameter. Results are currently sorted only by
+    their weight.
+    """
+
+    serializer_class = SearchV2Serializer
+    queryset = SearchV2.objects.all()
+
+    def list(self, request):
+        qr = request.GET.get("q", "")
+        queryset = search_function(qr)[:20]
+        serializer = SearchV2Serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class PackageViewSet(MultiLookupFieldMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows packages to be viewed or edited.
+    """
+
+    queryset = Package.objects.all().order_by("-id")
+    serializer_class = PackageSerializer
+    paginate_by = 20
+
+
+class GridViewSet(MultiLookupFieldMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = Grid.objects.all().order_by("-id")
+    serializer_class = GridSerializer
+    paginate_by = 20
+
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all().order_by("-id")
+    serializer_class = CategorySerializer
+    paginate_by = 20
+
+```
+
+## apiv4/serializers.py
+```python
+import emoji
+from django.core.exceptions import ImproperlyConfigured
+from django.urls import NoReverseMatch
+from rest_framework import relations, serializers
+from rest_framework.reverse import reverse
+
+from grid.models import Grid
+from package.models import Category, Package
+from searchv2.models import SearchV2
+
+
+class GridSerializer(serializers.ModelSerializer):
+    packages = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name="apiv4:package-detail",
+        read_only=True,
+        lookup_url_kwarg="pk_or_slug",
+    )
+
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "is_locked",
+            "packages",
+            "header",
+            "created",
+            "modified",
+        ]
+        model = Grid
+
+
+class PackageSerializer(serializers.HyperlinkedModelSerializer):
+    # 'Source' is attached to the model attribute
+    participants = serializers.ListField(source="participant_list")
+    commits_over_52 = serializers.ListField(source="commits_over_52_listed")
+    grids = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name="apiv4:grid-detail",
+        read_only=True,
+        lookup_url_kwarg="pk_or_slug",
+    )
+    category = serializers.HyperlinkedRelatedField(
+        view_name="apiv4:category-detail", read_only=True
+    )
+
+    class Meta:
+        model = Package
+        fields = (
+            "category",
+            "grids",
+            "id",
+            "title",
+            "slug",
+            "last_updated",
+            "last_fetched",
+            "repo_url",
+            "pypi_version",
+            "created",
+            "modified",
+            "repo_forks",
+            "repo_description",
+            "pypi_url",
+            "documentation_url",
+            "repo_watchers",
+            "commits_over_52",
+            "participants",
+        )
+
+
+class SearchV2Hyperlink(serializers.HyperlinkedRelatedField):
+    view_name = "package-detail"
+
+    def get_url(self, obj, view_name, request, format):
+        url_kwargs = {"organization_slug": obj.organization.slug, "customer_pk": obj.pk}
+        return reverse(view_name, url_kwargs, request=request, format=format)
+
+    def get_object(self, view_name, view_args, view_kwargs):
+        lookup_kwargs = {
+            "organization__slug": view_kwargs["organization_slug"],
+            "pk": view_kwargs["customer_pk"],
+        }
+        return self.get_queryset().get(**lookup_kwargs)
+
+
+class HyperlinkFeld(serializers.HyperlinkedRelatedField):
+    lookup_field = "pk"
+
+    def get_url(self, obj, view_name):
+        """
+        Given an object, return the URL that hyperlinks to the object.
+        May raise a `NoReverseMatch` if the `view_name` and `lookup_field`
+        attributes are not configured to correctly match the URL conf.
+        """
+        # Unsaved objects will not yet have a valid URL.
+        if hasattr(obj, "pk") and obj.pk is None:
+            return None
+        kwargs = {"pk": 1}
+        return reverse(view_name, kwargs=kwargs)
+
+    def to_representation(self, value):
+        self.view_name = f"apiv4:{value.item_type}-detail"
+
+        try:
+            url = self.get_url(value, self.view_name)
+        except NoReverseMatch:
+            msg = (
+                "Could not resolve URL for hyperlinked relationship using "
+                'view name "%s". You may have failed to include the related '
+                "model in your API, or incorrectly configured the "
+                "`lookup_field` attribute on this field."
+            )
+            if value in ("", None):
+                value_string = {"": "the empty string", None: "None"}[value]
+                msg += (
+                    " WARNING: The value of the field on the model instance "
+                    "was %s, which may be why it didn't match any "
+                    "entries in your URL conf." % value_string
+                )
+            raise ImproperlyConfigured(msg % self.view_name)
+
+        if url is None:
+            return None
+
+        return relations.Hyperlink(url, str(value))
+
+
+class SearchV2Serializer(serializers.ModelSerializer):
+    # resource_uri = HyperlinkFeld(source='_self')
+    description = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SearchV2
+        exclude = [
+            "id",
+        ]
+
+    def get_description(self, obj):
+        return emoji.emojize(obj.description)
+
+    def get_title(self, obj):
+        return emoji.emojize(obj.title)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "title_plural",
+            "show_pypi",
+            "created",
+            "modified",
+        ]
+        model = Category
+
+```
+
+## apiv4/urls.py
+```python
+from rest_framework import routers
+
+from .viewsets import CategoryViewSet, GridViewSet, PackageViewSet, SearchV2ViewSet
+
+app_name = "apiv4"
+
+router = routers.DefaultRouter()
+router.register(r"packages", PackageViewSet)
+router.register(r"search", SearchV2ViewSet)
+router.register(r"grids", GridViewSet)
+router.register(r"categories", CategoryViewSet)
+
+urlpatterns = router.urls
+
+```
+
+## apiv4/mixins.py
+```python
+class MultiLookupFieldMixin:
+    lookup_url_kwarg = "pk_or_slug"
+
+    @property
+    def lookup_field(self):
+        assert self.lookup_url_kwarg, "The `lookup_url_kwarg` field is required."
+
+        obj_ident = self.kwargs[self.lookup_url_kwarg]
+        return "pk" if obj_ident.isdigit() else "slug"
+
+```
+
+## package/models.py
+```python
+import json
+import math
+from datetime import timedelta
+import requests
+from dateutil import relativedelta
+from django.conf import settings
+from django.contrib.auth.models import User
+
+# from django.contrib.postgres.fields import ArrayField
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
+from django.db.models.constraints import UniqueConstraint
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.timezone import now
+from django.utils.translation import gettext_lazy as _
+from django_better_admin_arrayfield.models.fields import ArrayField
+from looseversion import LooseVersion
+from packaging.specifiers import SpecifierSet
+from requests.exceptions import HTTPError
+from rich import print
+
+from core.models import BaseModel
+from core.utils import PackageStatus, status_choices_switch
+from package.managers import PackageManager
+from package.repos import get_repo_for_repo_url
+from package.signals import signal_fetch_latest_metadata
+from package.utils import get_pypi_version, get_version, normalize_license
+
+repo_url_help_text = settings.PACKAGINATOR_HELP_TEXT["REPO_URL"]
+pypi_url_help_text = settings.PACKAGINATOR_HELP_TEXT["PYPI_URL"]
+
+
+class RepoHost(models.TextChoices):
+    AUTO_DETECT = "", _("Auto-detect")
+    BITBUCKET = "bitbucket", _("Bitbucket")
+    GITHUB = "github", _("GitHub")
+    GITLAB = "gitlab", _("GitLab")
+    CODEBERG = "codeberg", _("Codeberg")
+    FORGEJO = "forgejo", _("Forgejo")
+
+
+class NoPyPiVersionFound(Exception):
+    pass
+
+
+class Category(BaseModel):
+    title = models.CharField(_("Title"), max_length=50)
+    slug = models.SlugField(_("slug"))
+    description = models.TextField(_("description"), blank=True)
+    title_plural = models.CharField(_("Title Plural"), max_length=50, blank=True)
+    show_pypi = models.BooleanField(_("Show pypi stats & version"), default=True)
+
+    class Meta:
+        ordering = ["title"]
+        verbose_name_plural = "Categories"
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("category", args=[self.slug])
+
+
+class Package(BaseModel):
+    title = models.CharField(_("Title"), max_length=100)
+    slug = models.SlugField(
+        _("Slug"),
+        help_text="Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens. Values will be converted to lowercase.",
+        unique=True,
+    )
+    category = models.ForeignKey(
+        Category, verbose_name="Installation", on_delete=models.PROTECT
+    )
+    repo_description = models.TextField(
+        _("Repo Description"), blank=True, max_length=500
+    )
+    repo_url = models.URLField(
+        _("repo URL"), help_text=repo_url_help_text, blank=True, unique=True
+    )
+    repo_host = models.CharField(
+        _("Repo host"),
+        max_length=30,
+        choices=RepoHost,
+        blank=True,
+        default=RepoHost.AUTO_DETECT,
+        help_text=_(
+            "Select the hosting service when auto-detection cannot determine it."
+        ),
+    )
+    repo_watchers = models.IntegerField(_("Stars"), default=0)
+    repo_forks = models.IntegerField(_("repo forks"), default=0)
+    pypi_url = models.CharField(
+        _("PyPI slug"),
+        max_length=255,
+        help_text=pypi_url_help_text,
+        blank=True,
+        default="",
+    )
+    pypi_downloads = models.IntegerField(_("PyPI downloads"), default=0)
+    pypi_classifiers = ArrayField(
+        models.CharField(max_length=100), blank=True, null=True
+    )
+    pypi_info = models.JSONField(blank=True, null=True)
+    pypi_license = models.CharField(
+        _("PyPI License"), max_length=100, blank=True, null=True
+    )
+    pypi_licenses = ArrayField(models.CharField(max_length=100), blank=True, null=True)
+    pypi_requires_python = models.CharField(
+        _("PyPI Requires Python"), max_length=100, blank=True, null=True
+    )
+    markers = ArrayField(models.CharField(max_length=100), blank=True, null=True)
+    supports_python3 = models.BooleanField(
+        _("Supports Python 3"), blank=True, null=True
+    )
+    participants = models.TextField(
+        _("Participants"),
+        help_text="List of collaborats/participants on the project",
+        blank=True,
+    )
+    favorite_count = models.IntegerField(
+        _("Favorite"), default=0, help_text="Favorite count"
+    )
+    usage = models.ManyToManyField(User, blank=True)
+    created_by = models.ForeignKey(
+        User, blank=True, null=True, related_name="creator", on_delete=models.SET_NULL
+    )
+    last_modified_by = models.ForeignKey(
+        User, blank=True, null=True, related_name="modifier", on_delete=models.SET_NULL
+    )
+    last_fetched = models.DateTimeField(blank=True, null=True, default=now)
+    documentation_url = models.URLField(
+        _("Documentation URL"), blank=True, null=True, default=""
+    )
+
+    commit_list = models.TextField(_("Commit List"), blank=True)
+    score = models.IntegerField(_("Score"), default=0)
+
+    date_deprecated = models.DateTimeField(blank=True, null=True)
+    date_repo_archived = models.DateTimeField(
+        _("date when repo was archived"), blank=True, null=True
+    )
+    deprecated_by = models.ForeignKey(
+        User, blank=True, null=True, related_name="deprecator", on_delete=models.PROTECT
+    )
+    deprecates_package = models.ForeignKey(
+        "self",
+        blank=True,
+        help_text="The Package that replaces *this* Package",
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="replacement",
+    )
+    last_exception = models.TextField(blank=True, null=True)
+    last_exception_at = models.DateTimeField(blank=True, null=True)
+    last_exception_count = models.IntegerField(default=0, blank=True, null=True)
+
+    objects = PackageManager()
+
+    class Meta:
+        ordering = ["title"]
+        get_latest_by = "id"
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("package", args=[self.slug])
+
+    def get_opengraph_image_url(self):
+        return reverse("package_opengraph", args=[self.slug])
+
+    @property
+    def is_deprecated(self):
+        return self.date_deprecated is not None
+
+    @property
+    def has_favorite(self):
+        if self.favorite_count > 0:
+            return True
+        return False
+
+    def get_pypi_uri(self):
+        if self.pypi_name and len(self.pypi_name):
+            return f"https://pypi.org/project/{self.pypi_name}/"
+        return None
+
+    def get_pypi_json_uri(self):
+        if self.pypi_name and len(self.pypi_name):
+            return f"https://pypi.org/pypi/{self.pypi_name}/json"
+        return None
+
+    @property
+    def pypi_name(self):
+        """return the pypi name of a package"""
+
+        if not self.pypi_url.strip():
+            return ""
+
+        name = self.pypi_url
+
+        if "http://pypi.python.org/pypi/" in name:
+            name = name.replace("http://pypi.python.org/pypi/", "")
+
+        if "https://pypi.python.org/pypi/" in name:
+            name = name.replace("https://pypi.python.org/pypi/", "")
+
+        if "https://pypi.org/project/" in name:
+            name = name.replace("https://pypi.org/project/", "")
+
+        name = name.strip("/")
+
+        return name
+
+    def last_updated(self):
+        cache_name = self.cache_namer(self.last_updated)
+        last_commit = cache.get(cache_name)
+        if last_commit is not None:
+            return last_commit
+        try:
+            last_commit = self.commit_set.latest("commit_date").commit_date
+            if last_commit:
+                cache.set(cache_name, last_commit)
+                return last_commit
+        except ObjectDoesNotExist:
+            last_commit = None
+
+        return last_commit
+
+    @property
+    def repo(self):
+        return get_repo_for_repo_url(self.repo_url, self.repo_host or None)
+
+    @property
+    def active_examples(self):
+        return self.packageexample_set.filter(active=True)
+
+    @property
+    def license_latest(self):
+        try:
+ 
+
+# ... (truncated for brevity)
+```
+
+# Task: Package list CSV export
+
+## Background
+Users want to export package lists for analysis in spreadsheets.
+Need a CSV export endpoint for package data.
+
+## Problem
+No CSV export functionality exists for packages.
+
+## Task
+1. Add GET /api/v4/packages/export/csv/ endpoint
+2. Include fields: id, title, slug, repo_url, pypi_url, stars, forks, last_updated
+3. Support filtering by category slug
+4. Set proper Content-Type and Content-Disposition headers
+5. Limit export to 1000 packages max
+
+## Acceptance Criteria
+- Endpoint returns valid CSV with headers
+- CSV can be opened in Excel/Google Sheets
+- Category filter works: ?category=django-apps
+- Response has Content-Type: text/csv
+- Large exports are limited to prevent abuse
+
+
+## Instructions
+
+Add a CSV export endpoint for packages with proper headers
+and category filtering support.
+
+
+## Requirements
+
+1. Make the minimal changes necessary to complete the task
+2. Ensure all existing tests continue to pass
+3. Follow Django/DRF best practices
+4. Add appropriate type hints where applicable
+5. Include docstrings for new functions/classes
+
+Provide your solution as code blocks with filepath headers like:
+```python
+# filepath: package/views.py
+...code here...
+```

@@ -1,0 +1,1302 @@
+# AI Coding Assistant Instructions
+
+<!-- ASPECT_CODE_START -->
+## Aspect Code Knowledge Base
+
+**Aspect Code** is a static-analysis extension that generates a Knowledge Base (KB) for your codebase. The KB lives in `.aspect/` and contains these files:
+
+| File | Purpose |
+|------|---------|  
+| `architecture.md` | **Read first.** High-risk hubs, directory layout, entry points—the "Do Not Break" zones |
+| `map.md` | Data models with signatures, symbol index, naming conventions |
+| `context.md` | Module clusters (co-edited files), external integrations, data flow paths |
+
+**Key architectural intelligence:**
+- **High-Risk Hubs** in `architecture.md`: Files with many dependents—changes here ripple widely
+- **Entry Points** in `architecture.md`: HTTP handlers, CLI commands, event listeners
+- **External Integrations** in `context.md`: API clients, database connections, message queues
+- **Data Models** in `map.md`: ORM models, dataclasses, TypeScript interfaces with signatures
+
+Read the relevant KB files **before** making multi-file changes.
+
+Reference KB files at: `.aspect/<file>.md`
+
+## Golden Rules
+
+1. **Read the KB as a map, not a checklist.** Use `.aspect/*.md` files to understand architecture, not as a to-do list.
+2. **Read before you write.** Open the relevant KB files before multi-file edits.
+3. **Check architecture first.** Review `architecture.md` to understand high-risk zones before coding.
+4. **Think step-by-step.** Break complex tasks into smaller steps; reason through each before coding.
+5. **Prefer minimal, local changes.** Small patches are safer than large refactors, especially in hub files.
+6. **Never truncate code.** Don't use placeholders like `// ...rest` or `# existing code...`. Provide complete implementations.
+7. **Don't touch tests, migrations, or third-party code** unless the user explicitly asks you to.
+8. **Never remove referenced logic.** If a symbol appears in `map.md`, check all callers before deleting.
+9. **Understand blast radius.** Use `context.md` and `map.md` to trace relationships before refactors.
+10. **Follow naming patterns in map.md.** Match the project's existing naming patterns and import styles.
+11. **When unsure, go small.** Propose a minimal, reversible change instead of a sweeping refactor.
+
+## Recommended Workflow
+
+1. **Understand the task.** Parse requirements; note which files or endpoints are involved.
+2. **Check architecture.** Open `architecture.md` → identify high-risk hubs and entry points.
+3. **Find relevant code.** Open `map.md` → locate data models, symbols, and naming conventions.
+4. **Understand relationships.** Open `context.md` → see module clusters (co-edited files) and integrations.
+5. **Trace impact.** Review "Called by" in `map.md` to gauge the blast radius of changes.
+6. **Gather evidence.** If behavior is unclear, add targeted logging or traces to confirm assumptions.
+7. **Make minimal edits.** Implement the smallest change that solves the task; run tests.
+
+## When Changing Code
+
+- **Read the COMPLETE file** before modifying it. Preserve all existing exports/functions.
+- **Add, don't reorganize.** Unless the task says "refactor", avoid moving code around.
+- **Check high-risk hubs** (`architecture.md`) before editing widely-imported files.
+- **Avoid renaming** widely-used symbols listed in `map.md` without updating all callers.
+- **No new cycles.** Before adding an import, verify it won't create a circular dependency (`architecture.md`).
+- **Match conventions.** Follow naming patterns shown in `map.md` (naming, imports, frameworks).
+- **Check module clusters** (`context.md`) to understand which files are commonly edited together.
+- **Prefer small, localized changes** in the most relevant app module identified by the KB.
+- **Use `architecture.md`, `map.md`, and `context.md`** to locate the smallest, safest place to make a change.
+
+## How to Use the KB Files
+
+| File | When to Open | What to Look For |
+|------|--------------|------------------|
+| `architecture.md` | **First, always** | High-risk hubs, directory layout, entry points, circular dependencies |
+| `map.md` | Before modifying a function | Data models with signatures, symbol index, naming conventions |
+| `context.md` | Before architectural changes | Module clusters, external integrations, data flow patterns |
+
+### Quick Reference
+
+- **High-risk hubs** → Files with 3+ dependents listed in `architecture.md`—changes ripple widely
+- **Entry points** → HTTP handlers, CLI commands, event listeners in `architecture.md`
+- **External integrations** → HTTP clients, DB connections, message queues in `context.md`
+- **Data models** → ORM models, dataclasses, interfaces with signatures in `map.md`
+- **Module clusters** → Files commonly edited together in `context.md`
+- **High-impact symbol** → 5+ callers in `map.md` "Called by" column
+
+## When Things Go Wrong
+
+If you encounter repeated errors or unexpected behavior:
+
+1. **Use git** to see what changed: `git diff`, `git status`
+2. **Restore lost code** with `git checkout -- <file>` if needed
+3. **Re-read the complete file** before making more changes
+4. **Trace data flows** using `context.md` to understand execution paths
+5. **Run actual tests** to verify behavior before assuming something works
+6. **Check module clusters** in `context.md` for related files that may need updates
+
+## General Guidelines
+
+- **Read KB files first.** Before making changes, consult the relevant knowledge base files.
+- **Start with architecture.md.** Understand high-risk hubs and entry points.
+- **Check hub modules.** Know which files have many dependents before editing.
+- **Follow map.md conventions.** Match existing naming patterns and coding styles exactly.
+- **Minimal changes.** Make the smallest change that solves the problem correctly.
+- **Acknowledge risk.** If editing a hub module or high-impact file, note the elevated risk.
+
+## KB File Reference
+
+| File | Purpose |
+|------|---------|
+| `architecture.md` | High-risk hubs, project layout, entry points, circular dependencies |
+| `map.md` | Data models with signatures, symbol index, naming conventions |
+| `context.md` | Module clusters, external integrations, data flow patterns |
+
+## Section Headers (Pattern-Matching)
+
+**`architecture.md`:** `## High-Risk Architectural Hubs`, `## Directory Layout`, `## Entry Points`, `## Circular Dependencies`
+**`map.md`:** `## Data Models` (with signatures), `## Symbol Index` (with Called By), `## Conventions`
+**`context.md`:** `## Module Clusters` (co-edited files), `## External Integrations`, `## Critical Flows`
+<!-- ASPECT_CODE_END -->
+
+# Aspect Code Knowledge Base
+
+# architecture.md
+
+# Context
+
+_Data flow and co-location context. Use to understand which files work together._
+
+## Module Clusters
+
+_Files commonly edited/imported together. Use for feature co-location._
+
+### js
+
+- `static\js\underscore.js`
+- `static\js\htmx.min.js`
+- `static\js\jquery.dataTables.min.js`
+- `static\angular\angular.min.js`
+- `static\js\clipboard.min.js`
+- `static\js\gh3.js`
+
+### js
+
+- `static\js\jquery.tools.min.js`
+- `tailwind.config.js`
+- `static\js\gh3.js`
+- `static\js\jquery.tablesorter.min.js`
+- `static\js\clipboard.min.js`
+- `static\angular\angular.min.js`
+
+### scripts
+
+- `scripts\update_contributors.py`
+- `static\js\svg-sparkline.js`
+- `tailwind.config.js`
+- `feeds\models.py`
+- `settings.py`
+- `searchv2\views.py`
+
+### products
+
+- `products\models.py`
+- `feeds\models.py`
+- `tailwind.config.js`
+- `searchv2\views.py`
+- `searchv2\management\commands\searchv2_build.py`
+
+### repos
+
+- `package\repos\base_handler.py`
+- `profiles\models.py`
+- `searchv2\utils.py`
+- `package\models.py`
+- `static\components\component-jQuery\index.js`
+- `urls.py`
+
+### searchv2
+
+- `searchv2\models.py`
+- `searchv2\utils.py`
+- `grid\models.py`
+- `package\models.py`
+- `static\components\component-jQuery\index.js`
+- `static\js\jquery.tablesorter.min.js`
+
+### searchv2
+
+- `searchv2\builders_v3.py`
+- `searchv2\utils.py`
+- `static\js\timesheet.js`
+- `core\utils.py`
+
+### profiles
+
+- `profiles\forms.py`
+- `grid\models.py`
+- `package\models.py`
+- `favorites\models.py`
+
+## Critical Flows
+
+_Most central modules by connectivity. Changes here propagate widely._
+
+| Module | Callers | Dependencies |
+|--------|---------|--------------|n| `tailwind.config.js` | 96 | 2 |
+| `feeds\models.py` | 86 | 0 |
+| `static\js\htmx.min.js` | 81 | 0 |
+| `settings.py` | 50 | 5 |
+| `static\js\jquery.dataTables.min.js` | 46 | 5 |
+| `searchv2\views.py` | 40 | 17 |
+| `core\fields.py` | 48 | 0 |
+| `searchv2\rules.py` | 39 | 11 |
+
+## Dependency Chains
+
+_How modules chain together. Useful for tracing data flow._
+
+```
+tailwind.config.js → static\js\htmx.min.js
+```
+
+```
+settings.py → static\js\underscore.js → static\js\htmx.min.js
+```
+
+## External Integrations
+
+_Connections to external services._
+
+**HTTP/API Clients:**
+- `core\utils.py`: External integration: HTTP Client (requests)
+- `core\utils.py`: External integration: HTTP Client (requests)
+- `package\management\commands\cleanup_github_projects.py`: External integration: HTTP Client (requests)
+
+**Message Queues:**
+- `settings.py`: External integration: Cache (Redis)
+- `static\js\jquery.dataTables.js`: External integration: Message Queue (Bull/Redis)
+
+**Other:**
+- `static\js\jquery.dataTables.js`: External integration: Payment (Stripe)
+
+## Request Flow Pattern
+
+_How a typical request flows through the architecture._
+
+**React Data Flow:**
+```
+Components → Hooks → State/Context → API Calls → Server
+```
+
+---
+
+## Quick Reference
+
+**"What files work together for feature X?"**
+→ Check Module Clusters above.
+
+**"Where does data flow from this endpoint?"**
+→ Check Critical Flows and Dependency Chains.
+
+**"Where are external connections?"**
+→ Check External Integrations.
+
+
+# map.md
+
+# Map
+
+_Symbol index with signatures and conventions. Use to find types, functions, and coding patterns._
+
+## Data Models
+
+_Core data structures. Check these before modifying data handling._
+
+### ORM / Database Models
+
+**`blog\apps.py`**: ORM Model (Django) - BlogConfig
+
+**`classifiers\apps.py`**: ORM Model (Django) - ClassifiersConfig
+
+**`core\context_processors.py`**: ORM Model (Django)
+
+**`core\models.py`**: ORM Model (Django) - BaseModel
+
+**`favorites\apps.py`**: ORM Model (Django) - FavoritesConfig
+
+**`favorites\migrations\0001_initial.py`**: ORM Model (Django) - Migration
+
+**`favorites\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`favorites\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`favorites\models.py`**: ORM Model (Django) - Favorite
+
+**`grid\context_processors.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+**`grid\migrations\0001_initial.py`**: ORM Model (Django)
+
+### Pydantic / Data Classes
+
+**`blog\models.py`**: Data Model (Pydantic) - Post
+
+**`classifiers\models.py`**: Data Model (Pydantic) - Classifier
+
+**`core\models.py`**: ORM Model (Django) - BaseModel
+
+**`favorites\models.py`**: Data Model (Pydantic) - Favorite
+
+**`grid\models.py`**: Data Model (Pydantic) - Grid
+
+**`grid\models.py`**: Data Model (Pydantic) - Meta
+
+**`grid\models.py`**: Data Model (Pydantic) - Feature
+
+**`grid\models.py`**: Data Model (Pydantic) - Element
+
+**`homepage\models.py`**: Data Model (Pydantic) - Dpotw
+
+**`homepage\models.py`**: Data Model (Pydantic) - Gotw
+
+**`homepage\models.py`**: Data Model (Pydantic) - PSA
+
+**`package\repos\forgejo.py`**: Data Class (dataclass) - class
+
+**`products\models.py`**: Data Model (Pydantic) - Product
+
+**`products\models.py`**: Data Model (Pydantic) - Release
+
+**`profiles\models.py`**: Data Model (Pydantic) - Profile
+
+### Other Data Structures
+
+- `blog\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `blog\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `classifiers\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `classifiers\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `classifiers\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `favorites\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `favorites\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `grid\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `grid\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+- `grid\migrations\0001_initial.py`: Data model: Schema (Marshmallow)
+
+## Symbol Index
+
+_Functions, classes, and exports with call relationships._
+
+### `searchv2\rules.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `CheckResult` | class | `class CheckResult(BaseModel)` | — |
+| `ScoreRule` | class | `class ScoreRule(BaseModel)` | — |
+| `ScoreRuleGroup` | class | `class ScoreRuleGroup(ScoreRule)` | `demo_rules_v3`, `demo_rules_v3` |
+| `DeprecatedRule` | class | `class DeprecatedRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `FavoritePackageRule` | class | `class FavoritePackageRule(ScoreRule)` | — |
+| `DescriptionRule` | class | `class DescriptionRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `DocumentationRule` | class | `class DocumentationRule(ScoreRule)` | — |
+| `DownloadsRule` | class | `class DownloadsRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `ForkRule` | class | `class ForkRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `LastUpdatedRule` | class | `class LastUpdatedRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `RecentReleaseRule` | class | `class RecentReleaseRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+| `UsageCountRule` | class | `class UsageCountRule(ScoreRule)` | `builders_v3`, `builders_v3` |
+
+_+1 more symbols_
+
+### `package\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `RepoHost` | class | `class RepoHost(models.TextChoices)` | — |
+| `NoPyPiVersionFound` | class | `class NoPyPiVersionFound(Exception)` | — |
+| `Category` | class | `class Category(BaseModel)` | `views`, `forms` |
+| `Package` | class | `class Package(BaseModel)` | `sitemaps`, `urls` |
+| `FlaggedPackage` | class | `class FlaggedPackage(BaseModel)` | `views`, `forms` |
+| `PackageExample` | class | `class PackageExample(BaseModel)` | `views`, `forms` |
+| `Commit` | class | `class Commit(BaseModel)` | — |
+| `VersionManager` | class | `class VersionManager(models.Manager)` | — |
+| `Version` | class | `class Version(BaseModel)` | — |
+
+### `grid\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Grid` | class | `class Grid(BaseModel)` | `viewsets`, `serializers` |
+| `GridPackage` | class | `class GridPackage(BaseModel)` | `forms`, `forms` |
+| `Feature` | class | `class Feature(BaseModel)` | `forms`, `forms` |
+| `Element` | class | `class Element(BaseModel)` | `forms`, `forms` |
+
+### `package\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `repo_data_for_js` | function | `def repo_data_for_js()` | — |
+| `get_form_class` | function | `def get_form_class(form_name)` | — |
+| `add_package` | function | `def add_package(request, template_name)` | — |
+| `edit_package` | function | `def edit_package(request, slug, template_name)` | — |
+| `flag_package` | function | `def flag_package(request, slug, template_name)` | — |
+| `flag_approve` | function | `def flag_approve(request, slug)` | — |
+| `flag_remove` | function | `def flag_remove(request, slug)` | — |
+| `add_example` | function | `def add_example(request, slug, template_name)` | — |
+| `edit_example` | function | `def edit_example(request, slug, id)` | — |
+| `delete_example` | function | `def delete_example(request, slug, id)` | — |
+| `confirm_delete_example` | function | `def confirm_delete_example(request, slug, id)` | — |
+| `PackageListView` | class | `class PackageListView(TemplateView)` | — |
+
+_+13 more symbols_
+
+### `blog\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Post` | class | `class Post(BaseModel)` | `sitemaps`, `feeds` |
+
+### `package\repos\base_handler.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `BaseHandler` | class | `class BaseHandler` | `bitbucket`, `bitbucket` |
+
+### `tests\conftest.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `category` | function | `def category()` | — |
+| `grid` | function | `def grid()` | — |
+| `package` | function | `def package()` | — |
+
+### `profiles\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Profile` | class | `class Profile(BaseModel)` | `views`, `resources` |
+| `ExtraField` | class | `class ExtraField(BaseModel)` | `views`, `views` |
+
+### `scripts\update_contributors.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `main` | function | `def main()` | — |
+| `iter_recent_authors` | function | `def iter_recent_authors()` | — |
+| `ContributorsJSONFile` | class | `class ContributorsJSONFile` | — |
+| `write_md_file` | function | `def write_md_file(contributors)` | — |
+
+### `searchv2\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `remove_prefix` | function | `def remove_prefix(value)` | `builders_v3`, `builders_v3` |
+| `clean_title` | function | `def clean_title(value)` | `builders_v3`, `builders_v3` |
+
+### `searchv2\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `build_search` | function | `def build_search(request, template_name)` | — |
+| `search_function` | function | `def search_function(q, max_weight)` | `viewsets` |
+| `search` | function | `def search(request, template_name)` | `angular.min`, `controllers` |
+| `search2` | function | `def search2(request, template_name)` | — |
+| `search3` | function | `def search3(request, template_name)` | — |
+| `search_packages_autocomplete` | function | `def search_packages_autocomplete(request)` | — |
+| `SearchListAPIView` | class | `class SearchListAPIView(ListAPIView)` | — |
+| `SearchDetailAPIView` | class | `class SearchDetailAPIView(RetrieveAPIView)` | — |
+| `OpenSearchDescription` | class | `class OpenSearchDescription(TemplateView)` | — |
+| `OpenSearchSuggestions` | class | `class OpenSearchSuggestions(View)` | — |
+
+### `searchv2\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `SearchV2` | class | `class SearchV2(BaseModel)` | `viewsets`, `serializers` |
+
+### `grid\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `build_element_map` | function | `def build_element_map(elements)` | — |
+| `GridListView` | class | `class GridListView(SingleTableView)` | — |
+| `add_grid` | function | `def add_grid(request, template_name)` | — |
+| `edit_grid` | function | `def edit_grid(request, slug, template_name)` | — |
+| `add_feature` | function | `def add_feature(request, grid_slug, template_name)` | — |
+| `edit_feature` | function | `def edit_feature(request, id, template_name)` | — |
+| `delete_feature` | function | `def delete_feature(request, id, template_name)` | — |
+| `delete_grid_package` | function | `def delete_grid_package(request, id, template_name)` | — |
+| `add_grid_package` | function | `def add_grid_package(request, grid_slug, template_name)` | — |
+| `add_new_grid_package` | function | `def add_new_grid_package(request, grid_slug, template_name)` | — |
+| `ajax_grid_list` | function | `def ajax_grid_list(request, template_name)` | — |
+| `grid_detail` | function | `def grid_detail(request, slug, template_name)` | — |
+
+_+4 more symbols_
+
+### `searchv2\builders_v3.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `build_1` | function | `def build_1(*, verbose)` | `views`, `searchv3_build` |
+| `index_packages` | function | `def index_packages(*, verbose)` | — |
+| `index_groups` | function | `def index_groups(verbose)` | — |
+
+### `homepage\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `OpenView` | class | `class OpenView(TemplateView)` | — |
+| `ReadinessView` | class | `class ReadinessView(TemplateView)` | — |
+| `ReadinessDetailView` | class | `class ReadinessDetailView(TemplateView)` | — |
+| `homepage` | function | `def homepage(request, template_name)` | `views`, `views` |
+| `error_404_view` | function | `def error_404_view(request)` | — |
+| `error_500_view` | function | `def error_500_view(request)` | — |
+| `error_503_view` | function | `def error_503_view(request)` | — |
+
+### `apiv3\tests\data.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `BaseData` | class | `class BaseData(TestCase)` | — |
+
+### `apiv4\mixins.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `MultiLookupFieldMixin` | class | `class MultiLookupFieldMixin` | `viewsets`, `viewsets` |
+
+### `homepage\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `RotatorManager` | class | `class RotatorManager(models.Manager)` | — |
+| `Dpotw` | class | `class Dpotw(BaseModel)` | `views`, `views` |
+| `Gotw` | class | `class Gotw(BaseModel)` | `views`, `views` |
+| `PSA` | class | `class PSA(BaseModel)` | `views`, `views` |
+
+### `favorites\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Favorite` | class | `class Favorite(BaseModel)` | `views`, `views` |
+
+### `package\repos\forgejo.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `ForgejoMetadata` | class | `class ForgejoMetadata` | — |
+| `ForgejoCommit` | class | `class ForgejoCommit` | — |
+| `ForgejoClient` | class | `class ForgejoClient` | `codeberg`, `codeberg` |
+| `ForgejoHandler` | class | `class ForgejoHandler(BaseHandler)` | `codeberg`, `codeberg` |
+
+### `apiv3\views.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `GET_int` | function | `def GET_int(request, value_name, default)` | — |
+| `calc_next` | function | `def calc_next(request, limit, offset)` | — |
+| `calc_previous` | function | `def calc_previous(request, limit, offset)` | — |
+| `grid_detail` | function | `def grid_detail(request, slug)` | — |
+| `grid_list` | function | `def grid_list(request)` | — |
+| `package_detail` | function | `def package_detail(request, slug)` | — |
+| `package_list` | function | `def package_list(request)` | — |
+| `category_list` | function | `def category_list(request)` | — |
+| `category_detail` | function | `def category_detail(request, slug)` | — |
+| `user_list` | function | `def user_list(request)` | — |
+| `user_detail` | function | `def user_detail(request, github_account)` | — |
+| `grid_packages_list` | function | `def grid_packages_list(request, slug)` | — |
+
+_+1 more symbols_
+
+### `core\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `BaseModel` | class | `class BaseModel(models.Model)` | `models`, `models` |
+
+### `core\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `cache_fetcher` | function | `def cache_fetcher(cachekey_func, identifier_model)` | — |
+| `oc_slugify` | function | `def oc_slugify(value)` | — |
+| `get_pypi_url` | function | `def get_pypi_url(title, timeout)` | — |
+| `PackageStatus` | class | `class PackageStatus(models.IntegerChoices)` | `models` |
+| `status_choices_switch` | function | `def status_choices_switch(status)` | `models` |
+| `get_repo_from_url` | function | `def get_repo_from_url(url)` | — |
+| `healthcheck` | function | `def healthcheck(url, timeout)` | `searchv3_build`, `searchv2_build` |
+
+---
+
+## Conventions
+
+_Naming patterns and styles. Follow these for consistency._
+
+### File Naming
+
+| Pattern | Example | Count |
+|---------|---------|-------|
+| snake_case | `__init__.py` | 116 |
+| kebab-case | `svg-sparkline.js` | 4 |
+| camelCase | `jquery.dataTables.min.js` | 2 |
+| PascalCase | `Gruntfile.js` | 1 |
+
+**Use:** snake_case for new files.
+
+### Function Naming
+
+- `get_*` → `get_url` (15 occurrences)
+- `set_*` → `setHeadersCss` (1 occurrences)
+- `update_*` → `updateHeaderSortCount` (1 occurrences)
+- `is_*` → `isValueInArray` (1 occurrences)
+
+### Framework Patterns
+
+**Django:**
+- Models in `models.py`, views in `views.py`
+- URL patterns in `urls.py`
+- Forms in `forms.py`
+
+# Project Structure
+
+```
+djangopackages/
+├── __init__.py
+├── manage.py
+├── settings.py
+├── urls.py
+├── conftest.py
+├── apiv3/
+│   ├── __init__.py
+│   ├── resources.py
+│   ├── urls.py
+│   └── views.py
+├── apiv4/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── mixins.py
+│   ├── serializers.py
+│   ├── urls.py
+│   └── viewsets.py
+├── core/
+│   ├── __init__.py
+│   ├── models.py
+│   └── utils.py
+├── grid/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   ├── views.py
+│   └── tests/
+│       ├── test_views.py
+│       └── test_models.py
+├── homepage/
+│   ├── __init__.py
+│   ├── models.py
+│   └── views.py
+├── package/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── forms.py
+│   ├── managers.py
+│   ├── models.py
+│   ├── signals.py
+│   ├── urls.py
+│   ├── utils.py
+│   ├── views.py
+│   └── tests/
+│       ├── test_views.py
+│       └── test_models.py
+├── profiles/
+│   ├── __init__.py
+│   └── models.py
+├── searchv2/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── utils.py
+│   └── views.py
+└── templates/
+```
+
+# Relevant source files
+
+## apiv4/viewsets.py
+```python
+from rest_framework import mixins, viewsets
+from rest_framework.response import Response
+
+from grid.models import Grid
+from package.models import Category, Package
+from searchv2.models import SearchV2
+from searchv2.views import search_function
+
+from .mixins import MultiLookupFieldMixin
+from .serializers import (
+    CategorySerializer,
+    GridSerializer,
+    PackageSerializer,
+    SearchV2Serializer,
+)
+
+
+class SearchV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Accepts a 'q' GET parameter. Results are currently sorted only by
+    their weight.
+    """
+
+    serializer_class = SearchV2Serializer
+    queryset = SearchV2.objects.all()
+
+    def list(self, request):
+        qr = request.GET.get("q", "")
+        queryset = search_function(qr)[:20]
+        serializer = SearchV2Serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class PackageViewSet(MultiLookupFieldMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows packages to be viewed or edited.
+    """
+
+    queryset = Package.objects.all().order_by("-id")
+    serializer_class = PackageSerializer
+    paginate_by = 20
+
+
+class GridViewSet(MultiLookupFieldMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = Grid.objects.all().order_by("-id")
+    serializer_class = GridSerializer
+    paginate_by = 20
+
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all().order_by("-id")
+    serializer_class = CategorySerializer
+    paginate_by = 20
+
+```
+
+## apiv4/serializers.py
+```python
+import emoji
+from django.core.exceptions import ImproperlyConfigured
+from django.urls import NoReverseMatch
+from rest_framework import relations, serializers
+from rest_framework.reverse import reverse
+
+from grid.models import Grid
+from package.models import Category, Package
+from searchv2.models import SearchV2
+
+
+class GridSerializer(serializers.ModelSerializer):
+    packages = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name="apiv4:package-detail",
+        read_only=True,
+        lookup_url_kwarg="pk_or_slug",
+    )
+
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "is_locked",
+            "packages",
+            "header",
+            "created",
+            "modified",
+        ]
+        model = Grid
+
+
+class PackageSerializer(serializers.HyperlinkedModelSerializer):
+    # 'Source' is attached to the model attribute
+    participants = serializers.ListField(source="participant_list")
+    commits_over_52 = serializers.ListField(source="commits_over_52_listed")
+    grids = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name="apiv4:grid-detail",
+        read_only=True,
+        lookup_url_kwarg="pk_or_slug",
+    )
+    category = serializers.HyperlinkedRelatedField(
+        view_name="apiv4:category-detail", read_only=True
+    )
+
+    class Meta:
+        model = Package
+        fields = (
+            "category",
+            "grids",
+            "id",
+            "title",
+            "slug",
+            "last_updated",
+            "last_fetched",
+            "repo_url",
+            "pypi_version",
+            "created",
+            "modified",
+            "repo_forks",
+            "repo_description",
+            "pypi_url",
+            "documentation_url",
+            "repo_watchers",
+            "commits_over_52",
+            "participants",
+        )
+
+
+class SearchV2Hyperlink(serializers.HyperlinkedRelatedField):
+    view_name = "package-detail"
+
+    def get_url(self, obj, view_name, request, format):
+        url_kwargs = {"organization_slug": obj.organization.slug, "customer_pk": obj.pk}
+        return reverse(view_name, url_kwargs, request=request, format=format)
+
+    def get_object(self, view_name, view_args, view_kwargs):
+        lookup_kwargs = {
+            "organization__slug": view_kwargs["organization_slug"],
+            "pk": view_kwargs["customer_pk"],
+        }
+        return self.get_queryset().get(**lookup_kwargs)
+
+
+class HyperlinkFeld(serializers.HyperlinkedRelatedField):
+    lookup_field = "pk"
+
+    def get_url(self, obj, view_name):
+        """
+        Given an object, return the URL that hyperlinks to the object.
+        May raise a `NoReverseMatch` if the `view_name` and `lookup_field`
+        attributes are not configured to correctly match the URL conf.
+        """
+        # Unsaved objects will not yet have a valid URL.
+        if hasattr(obj, "pk") and obj.pk is None:
+            return None
+        kwargs = {"pk": 1}
+        return reverse(view_name, kwargs=kwargs)
+
+    def to_representation(self, value):
+        self.view_name = f"apiv4:{value.item_type}-detail"
+
+        try:
+            url = self.get_url(value, self.view_name)
+        except NoReverseMatch:
+            msg = (
+                "Could not resolve URL for hyperlinked relationship using "
+                'view name "%s". You may have failed to include the related '
+                "model in your API, or incorrectly configured the "
+                "`lookup_field` attribute on this field."
+            )
+            if value in ("", None):
+                value_string = {"": "the empty string", None: "None"}[value]
+                msg += (
+                    " WARNING: The value of the field on the model instance "
+                    "was %s, which may be why it didn't match any "
+                    "entries in your URL conf." % value_string
+                )
+            raise ImproperlyConfigured(msg % self.view_name)
+
+        if url is None:
+            return None
+
+        return relations.Hyperlink(url, str(value))
+
+
+class SearchV2Serializer(serializers.ModelSerializer):
+    # resource_uri = HyperlinkFeld(source='_self')
+    description = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SearchV2
+        exclude = [
+            "id",
+        ]
+
+    def get_description(self, obj):
+        return emoji.emojize(obj.description)
+
+    def get_title(self, obj):
+        return emoji.emojize(obj.title)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "title_plural",
+            "show_pypi",
+            "created",
+            "modified",
+        ]
+        model = Category
+
+```
+
+## apiv4/urls.py
+```python
+from rest_framework import routers
+
+from .viewsets import CategoryViewSet, GridViewSet, PackageViewSet, SearchV2ViewSet
+
+app_name = "apiv4"
+
+router = routers.DefaultRouter()
+router.register(r"packages", PackageViewSet)
+router.register(r"search", SearchV2ViewSet)
+router.register(r"grids", GridViewSet)
+router.register(r"categories", CategoryViewSet)
+
+urlpatterns = router.urls
+
+```
+
+## apiv4/mixins.py
+```python
+class MultiLookupFieldMixin:
+    lookup_url_kwarg = "pk_or_slug"
+
+    @property
+    def lookup_field(self):
+        assert self.lookup_url_kwarg, "The `lookup_url_kwarg` field is required."
+
+        obj_ident = self.kwargs[self.lookup_url_kwarg]
+        return "pk" if obj_ident.isdigit() else "slug"
+
+```
+
+## package/utils.py
+```python
+from django.db import models
+from looseversion import LooseVersion
+from requests.compat import quote
+from trove_classifiers import classifiers
+
+
+# this is gross, but requests doesn't import quote_plus into compat,
+# so we re-implement it here
+def quote_plus(s, safe=""):
+    """Quote the query fragment of a URL; replacing ' ' with '+'"""
+    if " " in s:
+        s = quote(s, f"{safe} ")
+        return s.replace(" ", "+")
+    return quote(s, safe)
+
+
+def uniquer(seq, idfun=None):
+    if idfun is None:
+
+        def idfun(x):
+            return x
+
+    seen = {}
+    result = []
+    for item in seq:
+        marker = idfun(item)
+        if marker in seen:
+            continue
+        seen[marker] = 1
+        result.append(item)
+    return result
+
+
+def get_version(package):
+    versions = package.version_set.exclude(upload_time=None)
+    try:
+        return versions.latest()
+    except models.ObjectDoesNotExist:
+        return None
+
+
+def get_pypi_version(package):
+    versions = []
+    for v_str in package.version_set.values_list("number", flat=True):
+        v = LooseVersion(v_str)
+        comparable = True
+        for elem in v.version:
+            if isinstance(elem, str):
+                comparable = False
+        if comparable:
+            versions.append(v)
+    if versions:
+        return str(sorted(versions)[-1])
+    return ""
+
+
+def normalize_license(license: str):
+    """Handles when:
+
+    * No license is passed
+    * Made up licenses are submitted
+    * Official PyPI trove classifier licenses
+    * Common abbreviations of licenses
+
+    """
+    if license is not None:
+        stripped_license = license.strip()
+        if stripped_license.startswith("License") and stripped_license in classifiers:
+            return stripped_license
+        if len(stripped_license) > 20:
+            return "Custom"
+        return stripped_license
+    return "UNKNOWN"
+
+```
+
+## package/models.py
+```python
+import json
+import math
+from datetime import timedelta
+import requests
+from dateutil import relativedelta
+from django.conf import settings
+from django.contrib.auth.models import User
+
+# from django.contrib.postgres.fields import ArrayField
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
+from django.db.models.constraints import UniqueConstraint
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.timezone import now
+from django.utils.translation import gettext_lazy as _
+from django_better_admin_arrayfield.models.fields import ArrayField
+from looseversion import LooseVersion
+from packaging.specifiers import SpecifierSet
+from requests.exceptions import HTTPError
+from rich import print
+
+from core.models import BaseModel
+from core.utils import PackageStatus, status_choices_switch
+from package.managers import PackageManager
+from package.repos import get_repo_for_repo_url
+from package.signals import signal_fetch_latest_metadata
+from package.utils import get_pypi_version, get_version, normalize_license
+
+repo_url_help_text = settings.PACKAGINATOR_HELP_TEXT["REPO_URL"]
+pypi_url_help_text = settings.PACKAGINATOR_HELP_TEXT["PYPI_URL"]
+
+
+class RepoHost(models.TextChoices):
+    AUTO_DETECT = "", _("Auto-detect")
+    BITBUCKET = "bitbucket", _("Bitbucket")
+    GITHUB = "github", _("GitHub")
+    GITLAB = "gitlab", _("GitLab")
+    CODEBERG = "codeberg", _("Codeberg")
+    FORGEJO = "forgejo", _("Forgejo")
+
+
+class NoPyPiVersionFound(Exception):
+    pass
+
+
+class Category(BaseModel):
+    title = models.CharField(_("Title"), max_length=50)
+    slug = models.SlugField(_("slug"))
+    description = models.TextField(_("description"), blank=True)
+    title_plural = models.CharField(_("Title Plural"), max_length=50, blank=True)
+    show_pypi = models.BooleanField(_("Show pypi stats & version"), default=True)
+
+    class Meta:
+        ordering = ["title"]
+        verbose_name_plural = "Categories"
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("category", args=[self.slug])
+
+
+class Package(BaseModel):
+    title = models.CharField(_("Title"), max_length=100)
+    slug = models.SlugField(
+        _("Slug"),
+        help_text="Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens. Values will be converted to lowercase.",
+        unique=True,
+    )
+    category = models.ForeignKey(
+        Category, verbose_name="Installation", on_delete=models.PROTECT
+    )
+    repo_description = models.TextField(
+        _("Repo Description"), blank=True, max_length=500
+    )
+    repo_url = models.URLField(
+        _("repo URL"), help_text=repo_url_help_text, blank=True, unique=True
+    )
+    repo_host = models.CharField(
+        _("Repo host"),
+        max_length=30,
+        choices=RepoHost,
+        blank=True,
+        default=RepoHost.AUTO_DETECT,
+        help_text=_(
+            "Select the hosting service when auto-detection cannot determine it."
+        ),
+    )
+    repo_watchers = models.IntegerField(_("Stars"), default=0)
+    repo_forks = models.IntegerField(_("repo forks"), default=0)
+    pypi_url = models.CharField(
+        _("PyPI slug"),
+        max_length=255,
+        help_text=pypi_url_help_text,
+        blank=True,
+        default="",
+    )
+    pypi_downloads = models.IntegerField(_("PyPI downloads"), default=0)
+    pypi_classifiers = ArrayField(
+        models.CharField(max_length=100), blank=True, null=True
+    )
+    pypi_info = models.JSONField(blank=True, null=True)
+    pypi_license = models.CharField(
+        _("PyPI License"), max_length=100, blank=True, null=True
+    )
+    pypi_licenses = ArrayField(models.CharField(max_length=100), blank=True, null=True)
+    pypi_requires_python = models.CharField(
+        _("PyPI Requires Python"), max_length=100, blank=True, null=True
+    )
+    markers = ArrayField(models.CharField(max_length=100), blank=True, null=True)
+    supports_python3 = models.BooleanField(
+        _("Supports Python 3"), blank=True, null=True
+    )
+    participants = models.TextField(
+        _("Participants"),
+        help_text="List of collaborats/participants on the project",
+        blank=True,
+    )
+    favorite_count = models.IntegerField(
+        _("Favorite"), default=0, help_text="Favorite count"
+    )
+    usage = models.ManyToManyField(User, blank=True)
+    created_by = models.ForeignKey(
+        User, blank=True, null=True, related_name="creator", on_delete=models.SET_NULL
+    )
+    last_modified_by = models.ForeignKey(
+        User, blank=True, null=True, related_name="modifier", on_delete=models.SET_NULL
+    )
+    last_fetched = models.DateTimeField(blank=True, null=True, default=now)
+    documentation_url = models.URLField(
+        _("Documentation URL"), blank=True, null=True, default=""
+    )
+
+    commit_list = models.TextField(_("Commit List"), blank=True)
+    score = models.IntegerField(_("Score"), default=0)
+
+    date_deprecated = models.DateTimeField(blank=True, null=True)
+    date_repo_archived = models.DateTimeField(
+        _("date when repo was archived"), blank=True, null=True
+    )
+    deprecated_by = models.ForeignKey(
+        User, blank=True, null=True, related_name="deprecator", on_delete=models.PROTECT
+    )
+    deprecates_package = models.ForeignKey(
+        "self",
+        blank=True,
+        help_text="The Package that replaces *this* Package",
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="replacement",
+    )
+    last_exception = models.TextField(blank=True, null=True)
+    last_exception_at = models.DateTimeField(blank=True, null=True)
+    last_exception_count = models.IntegerField(default=0, blank=True, null=True)
+
+    objects = PackageManager()
+
+    class Meta:
+        ordering = ["title"]
+        get_latest_by = "id"
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("package", args=[self.slug])
+
+    def get_opengraph_image_url(self):
+        return reverse("package_opengraph", args=[self.slug])
+
+    @property
+    def is_deprecated(self):
+        return self.date_deprecated is not None
+
+    @property
+    def has_favorite(self):
+        if self.favorite_count > 0:
+            return True
+        return False
+
+    def get_pypi_uri(self):
+        if self.pypi_name and len(self.pypi_name):
+            return f"https://pypi.org/project/{self.pypi_name}/"
+        return None
+
+    def get_pypi_json_uri(self):
+        if self.pypi_name and len(self.pypi_name):
+            return f"https://pypi.org/pypi/{self.pypi_name}/json"
+        return None
+
+    @property
+    def pypi_name(self):
+        """return the pypi name of a package"""
+
+        if not self.pypi_url.strip():
+            return ""
+
+        name = self.pypi_url
+
+        if "http://pypi.python.org/pypi/" in name:
+            name = name.replace("http://pypi.python.org/pypi/", "")
+
+        if "https://pypi.python.org/pypi/" in name:
+            name = name.replace("https://pypi.python.org/pypi/", "")
+
+        if "https://pypi.org/project/" in name:
+            name = name.replace("https://pypi.org/project/", "")
+
+        name = name.strip("/")
+
+        return name
+
+    def last_updated(self):
+        cache_name = self.cache_namer(self.last_updated)
+        last_commit = cache.get(cache_name)
+        if last_commit is not None:
+            return last_commit
+        try:
+            last_commit = self.commit_set.latest("commit_date").commit_date
+            if last_commit:
+                cache.set(cache_name, last_commit)
+                return last_commit
+        except ObjectDoesNotExist:
+            last_commit = None
+
+        return last_commit
+
+    @property
+    def repo(self):
+        return get_repo_for_repo_url(self.repo_url, self.repo_host or None)
+
+    @property
+    def active_examples(self):
+        return self.packageexample_set.filter(active=True)
+
+    @property
+    def license_latest(self):
+        try:
+ 
+
+# ... (truncated for brevity)
+```
+
+# Task: PyPI fetch retry mechanism
+
+## Background
+The package model fetches data from PyPI which can fail due to network issues
+or rate limiting. Currently failures may not be handled gracefully.
+
+## Problem
+Looking at `package/models.py` and `package/utils.py`, PyPI fetches may fail
+silently or raise unhandled exceptions.
+
+## Task
+1. Add retry logic to PyPI fetch operations (3 attempts with exponential backoff)
+2. Add timeout handling (10 second timeout per request)
+3. Log failures with appropriate detail level
+4. Return partial data if some fields fail but others succeed
+
+## Acceptance Criteria
+- Transient network errors retry up to 3 times
+- Retries use exponential backoff (1s, 2s, 4s)
+- Hard timeout after 10 seconds per attempt
+- Failed fetches are logged at WARNING level
+- Package update continues even if PyPI fetch fails
+
+
+## Instructions
+
+Add retry logic with exponential backoff to PyPI fetch operations.
+Handle timeouts and log failures appropriately.
+
+
+## Requirements
+
+1. Make the minimal changes necessary to complete the task
+2. Ensure all existing tests continue to pass
+3. Follow Django/DRF best practices
+4. Add appropriate type hints where applicable
+5. Include docstrings for new functions/classes
+
+Provide your solution as code blocks with filepath headers like:
+```python
+# filepath: package/views.py
+...code here...
+```

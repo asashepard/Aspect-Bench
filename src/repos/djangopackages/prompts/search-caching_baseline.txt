@@ -1,0 +1,610 @@
+# Project Structure
+
+```
+djangopackages/
+├── __init__.py
+├── manage.py
+├── settings.py
+├── urls.py
+├── conftest.py
+├── apiv3/
+│   ├── __init__.py
+│   ├── resources.py
+│   ├── urls.py
+│   └── views.py
+├── apiv4/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── mixins.py
+│   ├── serializers.py
+│   ├── urls.py
+│   └── viewsets.py
+├── core/
+│   ├── __init__.py
+│   ├── models.py
+│   └── utils.py
+├── grid/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   ├── views.py
+│   └── tests/
+│       ├── test_views.py
+│       └── test_models.py
+├── homepage/
+│   ├── __init__.py
+│   ├── models.py
+│   └── views.py
+├── package/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── forms.py
+│   ├── managers.py
+│   ├── models.py
+│   ├── signals.py
+│   ├── urls.py
+│   ├── utils.py
+│   ├── views.py
+│   └── tests/
+│       ├── test_views.py
+│       └── test_models.py
+├── profiles/
+│   ├── __init__.py
+│   └── models.py
+├── searchv2/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── utils.py
+│   └── views.py
+└── templates/
+```
+
+# Relevant source files
+
+## apiv4/viewsets.py
+```python
+from rest_framework import mixins, viewsets
+from rest_framework.response import Response
+
+from grid.models import Grid
+from package.models import Category, Package
+from searchv2.models import SearchV2
+from searchv2.views import search_function
+
+from .mixins import MultiLookupFieldMixin
+from .serializers import (
+    CategorySerializer,
+    GridSerializer,
+    PackageSerializer,
+    SearchV2Serializer,
+)
+
+
+class SearchV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Accepts a 'q' GET parameter. Results are currently sorted only by
+    their weight.
+    """
+
+    serializer_class = SearchV2Serializer
+    queryset = SearchV2.objects.all()
+
+    def list(self, request):
+        qr = request.GET.get("q", "")
+        queryset = search_function(qr)[:20]
+        serializer = SearchV2Serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class PackageViewSet(MultiLookupFieldMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows packages to be viewed or edited.
+    """
+
+    queryset = Package.objects.all().order_by("-id")
+    serializer_class = PackageSerializer
+    paginate_by = 20
+
+
+class GridViewSet(MultiLookupFieldMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = Grid.objects.all().order_by("-id")
+    serializer_class = GridSerializer
+    paginate_by = 20
+
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all().order_by("-id")
+    serializer_class = CategorySerializer
+    paginate_by = 20
+
+```
+
+## apiv4/serializers.py
+```python
+import emoji
+from django.core.exceptions import ImproperlyConfigured
+from django.urls import NoReverseMatch
+from rest_framework import relations, serializers
+from rest_framework.reverse import reverse
+
+from grid.models import Grid
+from package.models import Category, Package
+from searchv2.models import SearchV2
+
+
+class GridSerializer(serializers.ModelSerializer):
+    packages = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name="apiv4:package-detail",
+        read_only=True,
+        lookup_url_kwarg="pk_or_slug",
+    )
+
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "is_locked",
+            "packages",
+            "header",
+            "created",
+            "modified",
+        ]
+        model = Grid
+
+
+class PackageSerializer(serializers.HyperlinkedModelSerializer):
+    # 'Source' is attached to the model attribute
+    participants = serializers.ListField(source="participant_list")
+    commits_over_52 = serializers.ListField(source="commits_over_52_listed")
+    grids = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name="apiv4:grid-detail",
+        read_only=True,
+        lookup_url_kwarg="pk_or_slug",
+    )
+    category = serializers.HyperlinkedRelatedField(
+        view_name="apiv4:category-detail", read_only=True
+    )
+
+    class Meta:
+        model = Package
+        fields = (
+            "category",
+            "grids",
+            "id",
+            "title",
+            "slug",
+            "last_updated",
+            "last_fetched",
+            "repo_url",
+            "pypi_version",
+            "created",
+            "modified",
+            "repo_forks",
+            "repo_description",
+            "pypi_url",
+            "documentation_url",
+            "repo_watchers",
+            "commits_over_52",
+            "participants",
+        )
+
+
+class SearchV2Hyperlink(serializers.HyperlinkedRelatedField):
+    view_name = "package-detail"
+
+    def get_url(self, obj, view_name, request, format):
+        url_kwargs = {"organization_slug": obj.organization.slug, "customer_pk": obj.pk}
+        return reverse(view_name, url_kwargs, request=request, format=format)
+
+    def get_object(self, view_name, view_args, view_kwargs):
+        lookup_kwargs = {
+            "organization__slug": view_kwargs["organization_slug"],
+            "pk": view_kwargs["customer_pk"],
+        }
+        return self.get_queryset().get(**lookup_kwargs)
+
+
+class HyperlinkFeld(serializers.HyperlinkedRelatedField):
+    lookup_field = "pk"
+
+    def get_url(self, obj, view_name):
+        """
+        Given an object, return the URL that hyperlinks to the object.
+        May raise a `NoReverseMatch` if the `view_name` and `lookup_field`
+        attributes are not configured to correctly match the URL conf.
+        """
+        # Unsaved objects will not yet have a valid URL.
+        if hasattr(obj, "pk") and obj.pk is None:
+            return None
+        kwargs = {"pk": 1}
+        return reverse(view_name, kwargs=kwargs)
+
+    def to_representation(self, value):
+        self.view_name = f"apiv4:{value.item_type}-detail"
+
+        try:
+            url = self.get_url(value, self.view_name)
+        except NoReverseMatch:
+            msg = (
+                "Could not resolve URL for hyperlinked relationship using "
+                'view name "%s". You may have failed to include the related '
+                "model in your API, or incorrectly configured the "
+                "`lookup_field` attribute on this field."
+            )
+            if value in ("", None):
+                value_string = {"": "the empty string", None: "None"}[value]
+                msg += (
+                    " WARNING: The value of the field on the model instance "
+                    "was %s, which may be why it didn't match any "
+                    "entries in your URL conf." % value_string
+                )
+            raise ImproperlyConfigured(msg % self.view_name)
+
+        if url is None:
+            return None
+
+        return relations.Hyperlink(url, str(value))
+
+
+class SearchV2Serializer(serializers.ModelSerializer):
+    # resource_uri = HyperlinkFeld(source='_self')
+    description = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SearchV2
+        exclude = [
+            "id",
+        ]
+
+    def get_description(self, obj):
+        return emoji.emojize(obj.description)
+
+    def get_title(self, obj):
+        return emoji.emojize(obj.title)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "title_plural",
+            "show_pypi",
+            "created",
+            "modified",
+        ]
+        model = Category
+
+```
+
+## apiv4/urls.py
+```python
+from rest_framework import routers
+
+from .viewsets import CategoryViewSet, GridViewSet, PackageViewSet, SearchV2ViewSet
+
+app_name = "apiv4"
+
+router = routers.DefaultRouter()
+router.register(r"packages", PackageViewSet)
+router.register(r"search", SearchV2ViewSet)
+router.register(r"grids", GridViewSet)
+router.register(r"categories", CategoryViewSet)
+
+urlpatterns = router.urls
+
+```
+
+## apiv4/mixins.py
+```python
+class MultiLookupFieldMixin:
+    lookup_url_kwarg = "pk_or_slug"
+
+    @property
+    def lookup_field(self):
+        assert self.lookup_url_kwarg, "The `lookup_url_kwarg` field is required."
+
+        obj_ident = self.kwargs[self.lookup_url_kwarg]
+        return "pk" if obj_ident.isdigit() else "slug"
+
+```
+
+## searchv2/views.py
+```python
+import json
+
+from django.contrib.auth.decorators import login_required
+from django.db.models import F, FloatField, Max, Q
+from django.db.models.functions import Cast, Round
+from django.http import (
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+    JsonResponse,
+)
+from django.shortcuts import render
+from django.urls import reverse
+from django.views.generic import View, TemplateView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+
+from homepage.views import homepage
+from package.models import Package
+from searchv2.builders import build_1
+from searchv2.forms import SearchForm
+from searchv2.models import SearchV2
+from searchv2.utils import clean_title, remove_prefix
+
+
+@login_required
+def build_search(request, template_name="searchv2/build_results.html"):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden()
+
+    results = []
+    if request.method == "POST":
+        results = build_1()
+
+    return render(request, template_name, {"results": results})
+
+
+def search_function(q: str, max_weight: int = 1):
+    """TODO - make generic title searches have lower weight"""
+    items = []
+    if q:
+        items = (
+            SearchV2.objects.filter(
+                Q(clean_title__startswith=clean_title(remove_prefix(q)))
+                | Q(title__icontains=q)
+                | Q(title_no_prefix__startswith=q.lower())
+                | Q(slug__startswith=q.lower())
+                | Q(slug_no_prefix__startswith=q.lower())
+                | Q(description__icontains=q)
+            )
+            .annotate(weight_as_float=Cast("weight", output_field=FloatField()))
+            .annotate(
+                weight_percent=(
+                    Round(F("weight_as_float") / float(max_weight) * 100, precision=2)
+                )
+            )
+        )
+    return items
+
+
+def search(request, template_name="searchv2/search.html"):
+    """
+    Searches in Grids and Packages
+    """
+    q = request.GET.get("q", "")
+
+    if "/" in q:
+        lst = q.split("/")
+        try:
+            if lst[-1]:
+                q = lst[-1]
+            else:
+                q = lst[-2]
+        except IndexError:
+            pass
+    try:
+        package = Package.objects.get(title=q)
+        url = reverse("package", args=[package.slug.lower()])
+        return HttpResponseRedirect(url)
+    except Package.DoesNotExist:
+        pass
+    except Package.MultipleObjectsReturned:
+        pass
+
+    try:
+        package = Package.objects.get(slug=q)
+        url = reverse("package", args=[package.slug.lower()])
+        return HttpResponseRedirect(url)
+    except Package.DoesNotExist:
+        pass
+    except Package.MultipleObjectsReturned:
+        pass
+
+    form = SearchForm(request.GET or None)
+
+    return render(
+        request,
+        template_name,
+        {
+            "items": search_function(q),
+            "form": form,
+            "max_weight": SearchV2.objects.all().aggregate(Max("weight"))[
+                "weight__max"
+            ],
+        },
+    )
+
+
+def search2(request, template_name="searchv2/search.html"):
+    """
+    Searches in Grids and Packages
+    """
+    return homepage(request, template_name=template_name)
+
+
+def search3(request, template_name="search/search.html"):
+    """
+    Searches in Grids and Packages
+    """
+
+    if q := request.GET.get("q", ""):
+        query = q
+    elif q := request.GET.get("term", ""):
+        query = q
+    elif q := request.GET.get("search", ""):
+        query = q
+    else:
+        query = ""
+
+    if "/" in query:
+        lst = query.split("/")
+        try:
+            if lst[-1]:
+                query = lst[-1]
+            else:
+                query = lst[-2]
+        except IndexError:
+            pass
+
+    if request.htmx:
+        template_name = "search/search_partial.html"
+    else:
+        template_name = "search/search.html"
+
+        try:
+            package = Package.objects.get(title=q)
+            url = reverse("package", args=[package.slug.lower()])
+            return HttpResponseRedirect(url)
+        except (Package.DoesNotExist, Package.MultipleObjectsReturned):
+            pass
+
+        try:
+            package = Package.objects.get(slug=q)
+            url = reverse("package", args=[package.slug.lower()])
+            return HttpResponseRedirect(url)
+        except (Package.DoesNotExist, Package.MultipleObjectsReturned):
+            pass
+
+    max_weight = SearchV2.objects.only("weight").aggregate(max_weight=Max("weight"))[
+        "max_weight"
+    ]
+
+    return render(
+        request,
+        template_name,
+        {
+            "items": search_function(query, max_weight=max_weight or 1)[:20],
+        },
+    )
+
+
+def search_packages_autocomplete(request):
+    """
+    Searches in Packages
+    """
+    q = request.GET.get("term", "")
+    if q:
+        objects = search_function(q)[:15]
+        objects = objects.values_list("title", flat=True)
+        json_response = json.dumps(list(objects))
+    else:
+        json_response = json.dumps([])
+
+    return HttpResponse(json_response, content_type="text/javascript")
+
+
+class SearchListAPIView(ListAPIView):
+    model = SearchV2
+    paginate_by = 20
+
+    def get_queryset(self):
+        q = self.request.GET.get("q", "")
+        return search_function(q)
+
+
+class SearchDetailAPIView(RetrieveAPIView):
+    model = SearchV2
+
+
+class OpenSearchDescription(TemplateView):
+    template_name = "search_description.xml"
+
+
+class OpenSearchSuggestions(View):
+    def get(self, request):
+        suggestions = []
+        q = request.GET.get("q", "")
+        print(q, "query")
+        results = search_function(q)[:15]
+        suggestions.append(q)
+        titles = []
+        links = []
+        for result in results:
+            titles.append(result.title)
+            links.append(result.absolute_url)
+        suggestions.append(titles)
+        suggestions.append([])
+        suggestions.append(links)
+        return JsonResponse(suggestions, safe=False)
+
+```
+
+## searchv2/utils.py
+```python
+from django.conf import settings
+from django.template.defaultfilters import slugify
+
+CHARS = ["_", ",", ".", "-", " ", "/", "|"]
+
+
+def remove_prefix(value):
+    value = value.lower()
+    for char in CHARS:
+        value = value.replace(
+            f"{settings.PACKAGINATOR_SEARCH_PREFIX.lower()}{char}", ""
+        )
+    return value
+
+
+def clean_title(value):
+    value = slugify(value)
+    for char in CHARS:
+        value = value.replace(char, "")
+    return value
+
+```
+
+# Task: Search results caching
+
+## Background
+Popular search queries are repeated frequently but hit the database every time.
+Caching common searches can reduce database load significantly.
+
+## Problem
+The search_function in `searchv2/views.py` performs database queries on
+every request without caching.
+
+## Task
+1. Add query-based caching to search results
+2. Cache key should include the query and any filters
+3. Use a shorter TTL (1-2 minutes) since search index updates frequently
+4. Handle cache stampede for popular queries
+
+## Acceptance Criteria
+- Repeated identical searches use cache
+- Different queries have different cache entries
+- Cache is properly invalidated or expires
+- No stale results for more than 2 minutes
+- Cache works with filters (category, date, score)
+
+
+## Instructions
+
+Add caching to search results based on query parameters.
+Use a short TTL and proper cache key generation.
+
+
+## Requirements
+
+1. Make the minimal changes necessary to complete the task
+2. Ensure all existing tests continue to pass
+3. Follow Django/DRF best practices
+4. Add appropriate type hints where applicable
+5. Include docstrings for new functions/classes
+
+Provide your solution as code blocks with filepath headers like:
+```python
+# filepath: package/views.py
+...code here...
+```

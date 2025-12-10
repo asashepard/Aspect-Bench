@@ -1,0 +1,39 @@
+id: api-error-schema
+name: "Consistent API error schema"
+description: |
+  ## Background
+  All API errors should follow a consistent schema across all endpoints.
+  This includes validation errors, authentication errors, and server errors.
+  
+  ## Problem
+  Different endpoints may return errors in different formats. We need a
+  unified error response format.
+  
+  ## Task
+  1. Create a custom exception handler for DRF
+  2. All errors should include: `{"detail": "...", "code": "...", "field": "..." (optional)}`
+  3. Validation errors should be flattened into a list of field-specific errors
+  4. Apply to all apiv4 endpoints
+  
+  ## Acceptance Criteria
+  - 400 validation errors have consistent format with field names
+  - 401 auth errors include `code: "authentication_required"`
+  - 403 permission errors include `code: "permission_denied"`
+  - 404 errors include `code: "not_found"`
+  - 500 errors include `code: "server_error"` (without exposing internals)
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_error_schema.py -v"
+difficulty: hard
+tags:
+  - api
+  - error-handling
+  - drf
+
+baseline_prompt_hint: |
+  Create a custom DRF exception handler that returns consistent error
+  responses across all API endpoints.
+
+aspect_prompt_hint: |
+  Review DRF's exception handling patterns and the existing error responses.
+  Create a custom handler in apiv4/ and configure it in settings.

@@ -1,0 +1,65 @@
+# ===========================================
+# Aspect Code Benchmark - .gitignore
+# ===========================================
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Experiment Outputs (generated results)
+# Keep the folders but ignore their contents
+/src/results/*
+!/src/results/.gitkeep
+/src/responses/*
+!/src/responses/.gitkeep
+/src/reports/*
+!/src/reports/.gitkeep
+
+# Python Cache
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Pytest Cache
+**/.pytest_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Misc
+*.log
+*.tmp
+*.temp
+
+# Archive folders
+**/_archive/
+
+# Cloned target repositories
+/repos/**
+

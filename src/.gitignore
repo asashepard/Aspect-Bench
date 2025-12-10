@@ -1,0 +1,15 @@
+# Aspect Code Benchmark - src/.gitignore
+# Only ignore generated outputs, NOT scripts or task definitions
+
+# Generated experiment outputs
+/results/*
+!/results/.gitkeep
+/responses/*
+!/responses/.gitkeep
+/reports/*
+!/reports/.gitkeep
+
+# Pytest cache
+.pytest_cache/
+__pycache__/
+*.pyc

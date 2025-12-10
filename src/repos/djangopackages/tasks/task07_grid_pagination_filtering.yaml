@@ -1,0 +1,38 @@
+id: grid-list-pagination
+name: "Grid list pagination and filtering"
+description: |
+  ## Background
+  The grid list API should support pagination and basic filtering.
+  
+  ## Problem
+  The GridViewSet needs pagination and ability to filter by header status.
+  
+  ## Task
+  1. Add pagination matching the package endpoint pattern
+  2. Add filtering by `is_locked` and `header` boolean fields
+  3. Support `?header=true` to show only header grids
+  4. Support `?is_locked=false` to show only unlocked grids
+  
+  ## Acceptance Criteria
+  - Pagination works with count, next, previous, results
+  - ?header=true filters to header grids only
+  - ?is_locked=true/false filters correctly
+  - Filters can be combined
+  - Invalid filter values are handled gracefully
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_pagination.py::TestGridPagination -v"
+difficulty: medium
+tags:
+  - api
+  - pagination
+  - filtering
+  - drf
+
+baseline_prompt_hint: |
+  Add pagination and boolean filtering to the GridViewSet.
+  Support filtering by header and is_locked fields.
+
+aspect_prompt_hint: |
+  Use django-filter or DRF's built-in filtering.
+  Apply the same pagination class used for packages.

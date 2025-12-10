@@ -1,0 +1,36 @@
+id: api-grid-404
+name: "API grid 404 with error schema"
+description: |
+  ## Background
+  Similar to packages, the grid API needs consistent 404 error responses.
+  
+  ## Problem
+  The GridViewSet in `apiv4/viewsets.py` needs customized error handling
+  for non-existent grids.
+  
+  ## Task
+  1. Customize GridViewSet to return structured 404 errors
+  2. Response format: `{"detail": "Grid not found", "code": "not_found", "lookup": "<slug_or_id>"}`
+  3. Handle both slug and ID lookups
+  
+  ## Acceptance Criteria
+  - GET /api/v4/grids/nonexistent-slug/ returns 404 with proper schema
+  - GET /api/v4/grids/99999/ returns 404 with proper schema
+  - Response includes the lookup value
+  - List endpoints work normally
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_api_404.py::TestGrid404 -v"
+difficulty: easy
+tags:
+  - api
+  - error-handling
+  - drf
+
+baseline_prompt_hint: |
+  Customize the GridViewSet to return structured 404 error responses
+  matching the package endpoint pattern.
+
+aspect_prompt_hint: |
+  Review the package 404 implementation if already done, then apply
+  the same pattern to grids.

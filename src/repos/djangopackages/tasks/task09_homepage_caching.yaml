@@ -1,0 +1,39 @@
+id: homepage-caching
+name: "Homepage data caching"
+description: |
+  ## Background
+  The homepage view loads featured packages, grids, and stats on every request.
+  This causes unnecessary database queries for data that changes infrequently.
+  
+  ## Problem
+  Looking at `homepage/views.py`, the view queries multiple models without
+  caching. This impacts homepage load times.
+  
+  ## Task
+  1. Add caching to homepage featured packages (5 minute cache)
+  2. Add caching to header grids (5 minute cache)
+  3. Add caching to homepage stats (total packages, grids, users)
+  4. Provide cache invalidation when relevant data changes
+  
+  ## Acceptance Criteria
+  - Homepage queries are reduced on repeated loads
+  - Cache keys are namespaced properly
+  - Cache is invalidated when packages/grids are added
+  - TTL is configurable via settings
+  - Works with any cache backend (not just memcached)
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_caching.py -v"
+difficulty: hard
+tags:
+  - performance
+  - caching
+  - homepage
+
+baseline_prompt_hint: |
+  Add caching to homepage views using Django's cache framework.
+  Implement cache invalidation on model saves.
+
+aspect_prompt_hint: |
+  Review homepage/views.py and the Django cache documentation.
+  Consider using cache decorators or low-level cache API.

@@ -1,0 +1,49 @@
+id: api-response-caching
+name: "Add response caching for expensive queries"
+description: |
+  ## Background
+  Some of our API endpoints perform expensive database queries that don't change
+  often. The items listing with its counts and joins is called frequently but
+  the data only changes when items are created/updated/deleted.
+  
+  ## Problem
+  Every request to GET /api/v1/items/ hits the database, even when the same
+  user makes the same request seconds apart. This wastes resources and adds
+  latency.
+  
+  ## Task
+  Add caching support for the items listing endpoint:
+  
+  1. Add an in-memory cache (use cachetools or a simple dict with TTL)
+  2. Cache the items listing response for 60 seconds per user
+  3. Invalidate cache when items are created, updated, or deleted
+  4. Add Cache-Control headers to responses
+  5. Optionally support ETag for conditional requests
+  
+  ## Acceptance Criteria
+  - Repeated GET /items/ calls within 60s return cached response
+  - Cache is user-specific (different users get different caches)
+  - Creating/updating/deleting an item invalidates that user's cache
+  - Response includes Cache-Control header
+  - No broken tests
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_response_caching.py -v"
+difficulty: medium
+tags:
+  - caching
+  - performance
+  - items
+  - api
+
+baseline_prompt_hint: |
+  Add response caching to the items listing endpoint with TTL-based
+  cache invalidation and proper HTTP caching headers.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand what uses the items endpoints
+  - .aspect/hotspots.md - check if items.py is a high-risk file
+  - .aspect/flows.md - trace how items data flows
+  
+  Add caching without breaking existing functionality.

@@ -1,0 +1,39 @@
+id: package-list-pagination
+name: "Package list pagination"
+description: |
+  ## Background
+  The APIv4 package list endpoint needs proper pagination controls.
+  Currently uses DRF's default pagination which may not include all needed metadata.
+  
+  ## Problem
+  The PackageViewSet has `paginate_by = 20` but this is the old style.
+  Modern DRF pagination should use pagination_class with proper response format.
+  
+  ## Task
+  1. Add PageNumberPagination to PackageViewSet
+  2. Response should include: `{"count": N, "next": "...", "previous": "...", "results": [...]}`
+  3. Support `page` and `page_size` query parameters
+  4. Limit max page_size to 100
+  
+  ## Acceptance Criteria
+  - GET /api/v4/packages/ returns paginated response with count
+  - GET /api/v4/packages/?page=2 returns second page
+  - GET /api/v4/packages/?page_size=50 changes page size
+  - page_size > 100 is capped at 100
+  - Response includes next/previous links
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_pagination.py -v"
+difficulty: medium
+tags:
+  - api
+  - pagination
+  - drf
+
+baseline_prompt_hint: |
+  Add proper pagination to the PackageViewSet with page number pagination,
+  configurable page size, and proper response metadata.
+
+aspect_prompt_hint: |
+  Review DRF pagination patterns and update the viewset.
+  Consider creating a custom pagination class for reuse.

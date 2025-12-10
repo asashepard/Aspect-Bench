@@ -1,0 +1,47 @@
+id: missing-item-404
+name: "Missing item returns 404"
+description: |
+  ## Background
+  The items API should return appropriate HTTP status codes when items are not found.
+  Currently, the `/api/v1/items/{id}` endpoint does return 404 for missing items,
+  but the error response format is inconsistent with other endpoints.
+  
+  ## Problem
+  When requesting a non-existent item:
+  - The status code should be 404
+  - The response body should follow a consistent schema: `{"detail": "Item not found", "code": "not_found"}`
+  
+  Currently, the response may not include the `code` field, making it harder for
+  clients to programmatically handle different error types.
+  
+  ## Task
+  1. Ensure all item-related 404 responses include both `detail` and `code` fields
+  2. The `code` field should be a machine-readable string like `"not_found"`
+  3. Apply the same pattern to update and delete endpoints
+  
+  ## Acceptance Criteria
+  - GET /items/{id} returns `{"detail": "Item not found", "code": "not_found"}` for missing items
+  - PUT /items/{id} returns the same format for missing items
+  - DELETE /items/{id} returns the same format for missing items
+  - Status code is always 404 for these cases
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_items_error_format.py::test_item_not_found_format -v"
+difficulty: medium
+tags:
+  - api
+  - error-handling
+  - items
+
+baseline_prompt_hint: |
+  Update the items API to return consistent 404 error responses with both
+  `detail` and `code` fields. Apply to GET, PUT, and DELETE endpoints.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand which modules depend on items routes
+  - .aspect/flows.md - trace how errors propagate
+  - .aspect/findings_top.md - check for existing error handling issues
+  
+  Use this knowledge to implement consistent error responses without
+  breaking dependent code.

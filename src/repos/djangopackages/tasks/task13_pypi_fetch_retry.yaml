@@ -1,0 +1,40 @@
+id: pypi-fetch-retry
+name: "PyPI fetch retry mechanism"
+description: |
+  ## Background
+  The package model fetches data from PyPI which can fail due to network issues
+  or rate limiting. Currently failures may not be handled gracefully.
+  
+  ## Problem
+  Looking at `package/models.py` and `package/utils.py`, PyPI fetches may fail
+  silently or raise unhandled exceptions.
+  
+  ## Task
+  1. Add retry logic to PyPI fetch operations (3 attempts with exponential backoff)
+  2. Add timeout handling (10 second timeout per request)
+  3. Log failures with appropriate detail level
+  4. Return partial data if some fields fail but others succeed
+  
+  ## Acceptance Criteria
+  - Transient network errors retry up to 3 times
+  - Retries use exponential backoff (1s, 2s, 4s)
+  - Hard timeout after 10 seconds per attempt
+  - Failed fetches are logged at WARNING level
+  - Package update continues even if PyPI fetch fails
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_external_api.py -v"
+difficulty: hard
+tags:
+  - reliability
+  - retry
+  - external-api
+  - pypi
+
+baseline_prompt_hint: |
+  Add retry logic with exponential backoff to PyPI fetch operations.
+  Handle timeouts and log failures appropriately.
+
+aspect_prompt_hint: |
+  Review package/utils.py for PyPI fetch functions.
+  Consider using tenacity or requests retry adapters.

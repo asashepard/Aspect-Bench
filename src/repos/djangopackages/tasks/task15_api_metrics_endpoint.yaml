@@ -1,0 +1,39 @@
+id: api-metrics-endpoint
+name: "API fetch metrics endpoint"
+description: |
+  ## Background
+  Operators need visibility into external API fetch success rates
+  to monitor system health and debug issues.
+  
+  ## Problem
+  No endpoint exists to expose metrics about PyPI/GitHub fetch operations.
+  
+  ## Task
+  1. Add GET /api/v4/metrics/fetches/ endpoint (admin only)
+  2. Return stats: total_packages, last_24h_fetches, success_rate, avg_duration
+  3. Include breakdown by source (pypi, github, gitlab, etc.)
+  4. Cache metrics for 5 minutes to avoid expensive queries
+  
+  ## Acceptance Criteria
+  - Endpoint requires admin authentication
+  - Returns JSON with fetch statistics
+  - Includes per-source breakdown
+  - Response is cached for performance
+  - 403 for non-admin users
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_external_api.py::TestMetricsEndpoint -v"
+difficulty: hard
+tags:
+  - api
+  - metrics
+  - monitoring
+  - admin
+
+baseline_prompt_hint: |
+  Add an admin-only metrics endpoint that reports on external API
+  fetch success rates and performance.
+
+aspect_prompt_hint: |
+  Consider what data needs to be tracked to compute these metrics.
+  May need to add tracking to fetch operations first.

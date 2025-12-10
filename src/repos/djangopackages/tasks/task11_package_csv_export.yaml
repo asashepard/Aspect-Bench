@@ -1,0 +1,39 @@
+id: package-csv-export
+name: "Package list CSV export"
+description: |
+  ## Background
+  Users want to export package lists for analysis in spreadsheets.
+  Need a CSV export endpoint for package data.
+  
+  ## Problem
+  No CSV export functionality exists for packages.
+  
+  ## Task
+  1. Add GET /api/v4/packages/export/csv/ endpoint
+  2. Include fields: id, title, slug, repo_url, pypi_url, stars, forks, last_updated
+  3. Support filtering by category slug
+  4. Set proper Content-Type and Content-Disposition headers
+  5. Limit export to 1000 packages max
+  
+  ## Acceptance Criteria
+  - Endpoint returns valid CSV with headers
+  - CSV can be opened in Excel/Google Sheets
+  - Category filter works: ?category=django-apps
+  - Response has Content-Type: text/csv
+  - Large exports are limited to prevent abuse
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_exports.py -v"
+difficulty: medium
+tags:
+  - api
+  - exports
+  - csv
+
+baseline_prompt_hint: |
+  Add a CSV export endpoint for packages with proper headers
+  and category filtering support.
+
+aspect_prompt_hint: |
+  Review Django's StreamingHttpResponse for efficient CSV generation.
+  Add a new action to the PackageViewSet.

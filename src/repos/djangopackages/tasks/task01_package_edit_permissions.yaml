@@ -1,0 +1,42 @@
+id: package-edit-permissions
+name: "Package edit permissions check"
+description: |
+  ## Background
+  The package editing functionality has permission checks scattered across views.
+  Currently `can_edit_package` is checked on the user profile, but there's no
+  consistent enforcement or proper error responses.
+  
+  ## Problem
+  Looking at `package/views.py`, the `edit_package` view checks `can_edit_package`
+  on the user profile, but returns a generic HttpResponseForbidden without
+  structured error details. API consumers need consistent JSON error responses.
+  
+  ## Task
+  1. Create a reusable permission decorator for package editing
+  2. Return structured JSON errors: `{"detail": "...", "code": "permission_denied"}`
+  3. Apply to edit_package, add_example, and flag_package views
+  4. Ensure the permission check includes ownership OR superuser status
+  
+  ## Acceptance Criteria
+  - Unauthenticated users get 401 with proper JSON error
+  - Authenticated users without permission get 403 with JSON error
+  - Package owners can edit their own packages
+  - Superusers can edit any package
+  - All existing tests continue to pass
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_package_permissions.py -v"
+difficulty: medium
+tags:
+  - auth
+  - permissions
+  - django
+  - api
+
+baseline_prompt_hint: |
+  Add consistent permission checks to package editing views.
+  Return structured JSON error responses for permission failures.
+
+aspect_prompt_hint: |
+  Review the codebase to understand permission patterns before making changes.
+  Focus on package/views.py and profiles/models.py for existing permission logic.

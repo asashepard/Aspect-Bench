@@ -1,0 +1,39 @@
+id: search-filtering
+name: "Search API filtering"
+description: |
+  ## Background
+  The search API currently only supports a `q` parameter. Users need more
+  filtering options to narrow down search results.
+  
+  ## Problem
+  The SearchV2ViewSet only filters by query text. Need to add category and
+  date-based filtering.
+  
+  ## Task
+  1. Add `category` parameter to filter by category slug
+  2. Add `updated_after` parameter for date filtering (ISO 8601 format)
+  3. Add `min_score` parameter to filter by minimum weight
+  4. Combine filters with AND logic
+  
+  ## Acceptance Criteria
+  - GET /api/v4/search/?q=django&category=apps filters by category
+  - GET /api/v4/search/?q=django&updated_after=2024-01-01 filters by date
+  - GET /api/v4/search/?q=django&min_score=50 filters by weight
+  - Invalid date format returns 400 with proper error
+  - Empty results return empty list, not error
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_search_filtering.py -v"
+difficulty: medium
+tags:
+  - api
+  - search
+  - filtering
+
+baseline_prompt_hint: |
+  Add category, date, and score filtering to the search API endpoint.
+  Validate parameters and return proper errors for invalid input.
+
+aspect_prompt_hint: |
+  Review searchv2/views.py and the search_function to understand
+  how to add additional filters to the queryset.

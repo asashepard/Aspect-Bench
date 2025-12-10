@@ -1,0 +1,58 @@
+id: consistent-error-schema
+name: "Consistent error response schema"
+description: |
+  ## Background
+  A well-designed API should return errors in a consistent, predictable format.
+  Clients should be able to rely on a standard schema for all error responses.
+  
+  ## Problem
+  Currently, error responses across the API are inconsistent:
+  - Some return `{"detail": "message"}`
+  - Some return just a string
+  - Validation errors from Pydantic have a different structure
+  - There's no machine-readable error code
+  
+  ## Task
+  Implement a consistent error response schema across all `/api/v1` endpoints:
+  
+  ```json
+  {
+    "detail": "Human-readable error message",
+    "code": "machine_readable_code"
+  }
+  ```
+  
+  Error codes should be lowercase with underscores, e.g.:
+  - `not_found` - Resource doesn't exist
+  - `unauthorized` - Missing or invalid authentication
+  - `forbidden` - Authenticated but not permitted
+  - `validation_error` - Request validation failed
+  - `conflict` - Resource conflict (e.g., duplicate email)
+  
+  ## Acceptance Criteria
+  - All 4xx and 5xx responses follow the schema
+  - Validation errors are wrapped in the same format
+  - Error codes are consistent and documented
+  - Existing functionality is preserved
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_error_schema.py -v"
+difficulty: medium
+tags:
+  - api
+  - error-handling
+  - schema
+
+baseline_prompt_hint: |
+  Implement a consistent error response schema with `detail` and `code` fields
+  for all API error responses. Handle validation errors, not found, unauthorized,
+  forbidden, and conflict cases.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand error handling dependencies
+  - .aspect/flows.md - trace error paths through the system
+  - .aspect/findings_top.md - check for existing error handling issues
+  
+  Use this knowledge to implement consistent error handling without
+  breaking existing error flows or client expectations.

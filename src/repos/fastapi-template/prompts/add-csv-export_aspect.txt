@@ -1,0 +1,1170 @@
+# AI Coding Assistant Instructions
+
+<!-- ASPECT_CODE_START -->
+## Aspect Code Knowledge Base
+
+**Aspect Code** is a static-analysis extension that generates a Knowledge Base (KB) for your codebase. The KB lives in `.aspect/` and contains these files:
+
+| File | Purpose |
+|------|---------|  
+| `architecture.md` | **Read first.** High-risk hubs, directory layout, entry points—the "Do Not Break" zones |
+| `map.md` | Data models with signatures, symbol index, naming conventions |
+| `context.md` | Module clusters (co-edited files), external integrations, data flow paths |
+
+**Key architectural intelligence:**
+- **High-Risk Hubs** in `architecture.md`: Files with many dependents—changes here ripple widely
+- **Entry Points** in `architecture.md`: HTTP handlers, CLI commands, event listeners
+- **External Integrations** in `context.md`: API clients, database connections, message queues
+- **Data Models** in `map.md`: ORM models, dataclasses, TypeScript interfaces with signatures
+
+Read the relevant KB files **before** making multi-file changes.
+
+Reference KB files at: `.aspect/<file>.md`
+
+## Golden Rules
+
+1. **Read the KB as a map, not a checklist.** Use `.aspect/*.md` files to understand architecture, not as a to-do list.
+2. **Read before you write.** Open the relevant KB files before multi-file edits.
+3. **Check architecture first.** Review `architecture.md` to understand high-risk zones before coding.
+4. **Think step-by-step.** Break complex tasks into smaller steps; reason through each before coding.
+5. **Prefer minimal, local changes.** Small patches are safer than large refactors, especially in hub files.
+6. **Never truncate code.** Don't use placeholders like `// ...rest` or `# existing code...`. Provide complete implementations.
+7. **Don't touch tests, migrations, or third-party code** unless the user explicitly asks you to.
+8. **Never remove referenced logic.** If a symbol appears in `map.md`, check all callers before deleting.
+9. **Understand blast radius.** Use `context.md` and `map.md` to trace relationships before refactors.
+10. **Follow naming patterns in map.md.** Match the project's existing naming patterns and import styles.
+11. **When unsure, go small.** Propose a minimal, reversible change instead of a sweeping refactor.
+
+## Recommended Workflow
+
+1. **Understand the task.** Parse requirements; note which files or endpoints are involved.
+2. **Check architecture.** Open `architecture.md` → identify high-risk hubs and entry points.
+3. **Find relevant code.** Open `map.md` → locate data models, symbols, and naming conventions.
+4. **Understand relationships.** Open `context.md` → see module clusters (co-edited files) and integrations.
+5. **Trace impact.** Review "Called by" in `map.md` to gauge the blast radius of changes.
+6. **Gather evidence.** If behavior is unclear, add targeted logging or traces to confirm assumptions.
+7. **Make minimal edits.** Implement the smallest change that solves the task; run tests.
+
+## When Changing Code
+
+- **Read the COMPLETE file** before modifying it. Preserve all existing exports/functions.
+- **Add, don't reorganize.** Unless the task says "refactor", avoid moving code around.
+- **Check high-risk hubs** (`architecture.md`) before editing widely-imported files.
+- **Avoid renaming** widely-used symbols listed in `map.md` without updating all callers.
+- **No new cycles.** Before adding an import, verify it won't create a circular dependency (`architecture.md`).
+- **Match conventions.** Follow naming patterns shown in `map.md` (naming, imports, frameworks).
+- **Check module clusters** (`context.md`) to understand which files are commonly edited together.
+- **Prefer small, localized changes** in the most relevant app module identified by the KB.
+- **Use `architecture.md`, `map.md`, and `context.md`** to locate the smallest, safest place to make a change.
+
+## How to Use the KB Files
+
+| File | When to Open | What to Look For |
+|------|--------------|------------------|
+| `architecture.md` | **First, always** | High-risk hubs, directory layout, entry points, circular dependencies |
+| `map.md` | Before modifying a function | Data models with signatures, symbol index, naming conventions |
+| `context.md` | Before architectural changes | Module clusters, external integrations, data flow patterns |
+
+### Quick Reference
+
+- **High-risk hubs** → Files with 3+ dependents listed in `architecture.md`—changes ripple widely
+- **Entry points** → HTTP handlers, CLI commands, event listeners in `architecture.md`
+- **External integrations** → HTTP clients, DB connections, message queues in `context.md`
+- **Data models** → ORM models, dataclasses, interfaces with signatures in `map.md`
+- **Module clusters** → Files commonly edited together in `context.md`
+- **High-impact symbol** → 5+ callers in `map.md` "Called by" column
+
+## When Things Go Wrong
+
+If you encounter repeated errors or unexpected behavior:
+
+1. **Use git** to see what changed: `git diff`, `git status`
+2. **Restore lost code** with `git checkout -- <file>` if needed
+3. **Re-read the complete file** before making more changes
+4. **Trace data flows** using `context.md` to understand execution paths
+5. **Run actual tests** to verify behavior before assuming something works
+6. **Check module clusters** in `context.md` for related files that may need updates
+
+## General Guidelines
+
+- **Read KB files first.** Before making changes, consult the relevant knowledge base files.
+- **Start with architecture.md.** Understand high-risk hubs and entry points.
+- **Check hub modules.** Know which files have many dependents before editing.
+- **Follow map.md conventions.** Match existing naming patterns and coding styles exactly.
+- **Minimal changes.** Make the smallest change that solves the problem correctly.
+- **Acknowledge risk.** If editing a hub module or high-impact file, note the elevated risk.
+
+## KB File Reference
+
+| File | Purpose |
+|------|---------|
+| `architecture.md` | High-risk hubs, project layout, entry points, circular dependencies |
+| `map.md` | Data models with signatures, symbol index, naming conventions |
+| `context.md` | Module clusters, external integrations, data flow patterns |
+
+## Section Headers (Pattern-Matching)
+
+**`architecture.md`:** `## High-Risk Architectural Hubs`, `## Directory Layout`, `## Entry Points`, `## Circular Dependencies`
+**`map.md`:** `## Data Models` (with signatures), `## Symbol Index` (with Called By), `## Conventions`
+**`context.md`:** `## Module Clusters` (co-edited files), `## External Integrations`, `## Critical Flows`
+<!-- ASPECT_CODE_END -->
+
+# Aspect Code Knowledge Base
+
+# architecture.md
+
+# Architecture
+
+_Read this first. Describes the project layout and "Do Not Break" zones._
+
+**Files:** 123 | **Dependencies:** 317 | **Cycles:** 7
+
+## ⚠️ High-Risk Architectural Hubs
+
+> **These files are architectural load-bearing walls.**
+> Modify with extreme caution. Do not change signatures without checking `map.md`.
+
+| Rank | File | Imports | Imported By | Issues | Risk |
+|------|------|---------|-------------|--------|------|
+| 1 | `backend\app\models.py` | 0 | 34 | 21 | 🔴 High |
+| 2 | `backend\app\core\config.py` | 1 | 23 | 7 | 🔴 High |
+| 3 | `backend\app\api\routes\users.py` | 17 | 0 | 20 | 🟡 Medium |
+| 4 | `backend\app\core\security.py` | 3 | 22 | 3 | 🔴 High |
+| 5 | `backend\app\api\routes\login.py` | 21 | 1 | 9 | 🟡 Medium |
+| 6 | `backend\app\api\deps.py` | 13 | 10 | 2 | 🔴 High |
+| 7 | `backend\app\core\db.py` | 8 | 10 | 3 | 🔴 High |
+| 8 | `backend\app\utils.py` | 7 | 7 | 6 | 🟡 Medium |
+| 9 | `backend\app\crud.py` | 5 | 9 | 5 | 🔴 High |
+| 10 | `frontend\src\client\core\request.ts` | 5 | 4 | 11 | 🟡 Medium |
+| 11 | `backend\app\api\routes\items.py` | 8 | 0 | 10 | 🟡 Medium |
+| 12 | `backend\app\initial_data.py` | 2 | 9 | 3 | 🔴 High |
+
+### Hub Details
+
+**1. `backend\app\models.py`** (34 importers)
+Imported by:
+- `backend\app\crud.py`
+- `backend\app\crud.py`
+- `backend\app\api\deps.py`
+- `backend\app\api\deps.py`
+- `backend\app\core\db.py`
+- _...and 29 more_
+
+**2. `backend\app\core\config.py`** (23 importers)
+Imported by:
+- `backend\app\api\deps.py`
+- `backend\app\api\deps.py`
+- `backend\app\main.py`
+- `backend\app\utils.py`
+- `backend\app\utils.py`
+- _...and 18 more_
+
+**3. `backend\app\api\routes\users.py`** (0 importers)
+
+## Entry Points
+
+_Where requests enter the system._
+
+**API Routes:** 23 endpoints
+- `backend\app\api\routes\items.py`: GET / → read_items
+- `backend\app\api\routes\items.py`: GET /{id} → read_item
+- `backend\app\api\routes\items.py`: POST / → create_item
+- `backend\app\api\routes\items.py`: PUT /{id} → update_item
+- `backend\app\api\routes\items.py`: DELETE /{id} → delete_item
+- _...and 18 more_
+
+**Application Entry:**
+- `backend\app\backend_pre_start.py`: Main entry point: main
+- `backend\app\initial_data.py`: Main entry point: main
+- `frontend\src\main.tsx`: Entry point (main)
+- `frontend\src\client\index.ts`: Entry point (index)
+
+## Directory Layout
+
+| Directory | Files | Purpose |
+|-----------|-------|--------|
+| `frontend/` | 3 | Frontend |
+| `frontend\src/` | 5 | Source code |
+| `frontend\src\client/` | 4 | Client code |
+| `frontend\src\routes/` | 6 | General |
+| `frontend\src\hooks/` | 2 | General |
+| `frontend\src\client\core/` | 6 | General |
+| `backend\app/` | 8 | General |
+| `backend\app\api/` | 3 | API layer |
+| `backend\app\core/` | 4 | General |
+| `frontend\src\routes\_layout/` | 4 | General |
+| `backend\app\alembic\versions/` | 4 | General |
+| `backend\app\api\routes/` | 6 | General |
+
+## ⚠️ Circular Dependencies
+
+_Bidirectional imports that create tight coupling._
+
+- `frontend\src\utils.ts` ↔ `frontend\src\utils.ts`
+- `frontend\src\routes\reset-password.tsx` ↔ `frontend\src\routes\reset-password.tsx`
+- `frontend\src\routes\recover-password.tsx` ↔ `frontend\src\routes\recover-password.tsx`
+- `backend\app\initial_data.py` ↔ `backend\app\core\db.py`
+- `backend\app\main.py` ↔ `backend\app\main.py`
+
+## Tests
+
+**Test files:** 13 | **Dirs:** backend\tests\scripts, backend\tests
+
+
+# context.md
+
+# Context
+
+_Data flow and co-location context. Use to understand which files work together._
+
+## Module Clusters
+
+_Files commonly edited/imported together. Use for feature co-location._
+
+### frontend
+
+- `frontend\openapi-ts.config.ts`
+- `backend\app\core\config.py`
+- `backend\app\core\security.py`
+- `backend\app\models.py`
+- `backend\app\alembic\versions\1a31ce608336_add_cascade_delete_relationships.py`
+- `frontend\src\client\core\ApiResult.ts`
+
+### app
+
+- `backend\app\utils.py`
+- `backend\app\models.py`
+- `backend\app\api\deps.py`
+- `backend\app\core\security.py`
+- `backend\app\core\config.py`
+- `backend\app\initial_data.py`
+
+### app
+
+- `backend\app\crud.py`
+- `backend\app\api\deps.py`
+- `backend\app\api\routes\utils.py`
+
+## Critical Flows
+
+_Most central modules by connectivity. Changes here propagate widely._
+
+| Module | Callers | Dependencies |
+|--------|---------|--------------|n| `backend\app\models.py` | 18 | 0 |
+| `backend\app\core\security.py` | 16 | 2 |
+| `backend\app\api\deps.py` | 10 | 11 |
+| `backend\app\core\config.py` | 15 | 1 |
+| `backend\app\core\db.py` | 8 | 6 |
+| `backend\app\api\routes\login.py` | 1 | 18 |
+| `backend\app\utils.py` | 6 | 6 |
+| `backend\app\api\routes\users.py` | 0 | 14 |
+
+## Dependency Chains
+
+_How modules chain together. Useful for tracing data flow._
+
+```
+backend\app\core\security.py → backend\app\core\config.py → frontend\openapi-ts.config.ts
+```
+
+```
+backend\app\core\config.py → frontend\openapi-ts.config.ts
+```
+
+```
+backend\app\api\deps.py → backend\app\core\security.py → backend\app\core\config.py → frontend\openapi-ts.config.ts
+```
+
+## External Integrations
+
+_Connections to external services._
+
+**Database:**
+- `backend\app\core\db.py`: External integration: Database (SQLAlchemy)
+- `backend\app\core\db.py`: External integration: Database (SQLAlchemy)
+
+## Request Flow Pattern
+
+_How a typical request flows through the architecture._
+
+**React Data Flow:**
+```
+Components → Hooks → State/Context → API Calls → Server
+```
+
+---
+
+## Quick Reference
+
+**"What files work together for feature X?"**
+→ Check Module Clusters above.
+
+**"Where does data flow from this endpoint?"**
+→ Check Critical Flows and Dependency Chains.
+
+**"Where are external connections?"**
+→ Check External Integrations.
+
+
+# map.md
+
+# Map
+
+_Symbol index with signatures and conventions. Use to find types, functions, and coding patterns._
+
+## Data Models
+
+_Core data structures. Check these before modifying data handling._
+
+### ORM / Database Models
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserBase
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserRegister
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserUpdateMe
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UpdatePassword
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserPublic
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - ItemBase
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - ItemPublic
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - Message
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - TokenPayload
+
+### Pydantic / Data Classes
+
+**`backend\app\api\routes\private.py`**: Data Model (Pydantic) - PrivateUserCreate
+
+**`backend\app\utils.py`**: Data Class (dataclass) - class
+
+### TypeScript Interfaces & Types
+
+**`frontend\src\client\core\ApiRequestOptions.ts`**: Type Alias - ApiRequestOptions
+
+**`frontend\src\client\core\OpenAPI.ts`**: Type Alias - OpenAPIConfig
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - ItemPublic
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - PrivateUserCreate
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - UserCreate
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - UserPublic
+
+**`frontend\src\components\Common\SidebarItems.tsx`**: Interface - Item
+
+### Other Data Structures
+
+- `backend\app\core\config.py`: Data model: Schema (Cerberus)
+- `backend\app\core\config.py`: Data model: Schema (Cerberus)
+- `backend\tests\api\routes\test_benchmark_tasks.py`: Data model: Schema (Marshmallow)
+- `frontend\src\components\ui\toaster.tsx`: Data model: Schema (io-ts)
+- `frontend\src\routes\_layout\admin.tsx`: Data model: Schema (Zod)
+- `frontend\src\routes\_layout\items.tsx`: Data model: Schema (Zod)
+
+## Symbol Index
+
+_Functions, classes, and exports with call relationships._
+
+### `backend\app\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `UserBase` | class | `class UserBase(SQLModel)` | — |
+| `UserCreate` | class | `class UserCreate(UserBase)` | `db`, `db` |
+| `UserRegister` | class | `class UserRegister(SQLModel)` | — |
+| `UserUpdate` | class | `class UserUpdate(UserBase)` | `crud`, `crud` |
+| `UserUpdateMe` | class | `class UserUpdateMe(SQLModel)` | — |
+| `UpdatePassword` | class | `class UpdatePassword(SQLModel)` | — |
+| `User` | class | `class User(UserBase)` | `db`, `db` |
+| `UserPublic` | class | `class UserPublic(UserBase)` | `login`, `login` |
+| `UsersPublic` | class | `class UsersPublic(SQLModel)` | — |
+| `ItemBase` | class | `class ItemBase(SQLModel)` | — |
+| `ItemCreate` | class | `class ItemCreate(ItemBase)` | `items`, `items` |
+| `ItemUpdate` | class | `class ItemUpdate(ItemBase)` | `items`, `items` |
+
+_+7 more symbols_
+
+### `backend\app\core\config.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `parse_cors` | function | `def parse_cors(v)` | — |
+| `Settings` | class | `class Settings(BaseSettings)` | — |
+
+### `backend\app\api\routes\users.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `read_users` | function | `def read_users(session, skip, limit)` | — |
+| `create_user` | function | `def create_user(*, session, user_in)` | — |
+| `read_user_me` | function | `def read_user_me(current_user)` | — |
+| `delete_user_me` | function | `def delete_user_me(session, current_user)` | — |
+| `register_user` | function | `def register_user(session, user_in)` | — |
+
+### `backend\app\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `EmailData` | class | `class EmailData` | — |
+| `render_email_template` | function | `def render_email_template(*, template_name, context)` | — |
+| `generate_test_email` | function | `def generate_test_email(email_to)` | `utils` |
+| `generate_reset_password_email` | function | `def generate_reset_password_email(email_to, email, token)` | — |
+| `generate_password_reset_token` | function | `def generate_password_reset_token(email)` | — |
+| `verify_password_reset_token` | function | `def verify_password_reset_token(token)` | — |
+
+### `backend\app\core\db.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init_db` | function | `def init_db(session)` | `initial_data`, `initial_data` |
+
+### `backend\app\api\routes\login.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `test_token` | function | `def test_token(current_user)` | — |
+| `recover_password` | function | `def recover_password(email, session)` | — |
+| `reset_password` | function | `def reset_password(session, body)` | — |
+| `recover_password_html_content` | function | `def recover_password_html_content(email, session)` | — |
+
+### `backend\app\backend_pre_start.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init` | function | `def init(db_engine)` | `main` |
+| `main` | function | `def main()` | — |
+
+### `backend\app\core\security.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `create_access_token` | function | `def create_access_token(subject, expires_delta)` | `login` |
+| `verify_password` | function | `def verify_password(plain_password, hashed_password)` | `users`, `users` |
+| `get_password_hash` | function | `def get_password_hash(password)` | `login`, `login` |
+
+### `backend\app\api\routes\items.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `read_item` | function | `def read_item(session, current_user, id)` | — |
+
+### `backend\app\api\routes\private.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `PrivateUserCreate` | class | `class PrivateUserCreate(BaseModel)` | — |
+| `create_user` | function | `def create_user(user_in, session)` | `db`, `users` |
+
+### `backend\app\api\routes\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `test_email` | function | `def test_email(email_to)` | — |
+
+### `backend\app\api\deps.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `get_db` | function | `def get_db()` | — |
+| `get_current_user` | function | `def get_current_user(session, token)` | — |
+| `get_current_active_superuser` | function | `def get_current_active_superuser(current_user)` | `login`, `login` |
+
+### `backend\app\tests_pre_start.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init` | function | `def init(db_engine)` | — |
+| `main` | function | `def main()` | — |
+
+### `frontend\src\client\core\request.ts`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `isString` | const | — | — |
+| `isStringWithValue` | const | — | — |
+| `isBlob` | const | — | — |
+| `isFormData` | const | — | — |
+| `isSuccess` | const | — | — |
+| `base64` | const | — | — |
+| `getQueryString` | const | — | — |
+| `getFormData` | const | — | — |
+| `resolve` | const | — | — |
+| `getHeaders` | const | — | — |
+| `getRequestBody` | const | — | — |
+| `sendRequest` | const | — | — |
+
+_+4 more symbols_
+
+### `frontend\src\routes\_layout\admin.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\src\client\core\OpenAPI.ts`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Interceptors` | class | `class Interceptors` | — |
+| `OpenAPIConfig` | type | `type OpenAPIConfig` | — |
+| `OpenAPI` | const | — | `sdk.gen` |
+
+### `backend\app\initial_data.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init` | function | `def init()` | — |
+| `main` | function | `def main()` | — |
+
+### `backend\app\crud.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `create_user` | function | `def create_user(*, session, user_create)` | — |
+| `update_user` | function | `def update_user(*, session, db_user)` | — |
+| `get_user_by_email` | function | `def get_user_by_email(*, session, email)` | `login`, `users` |
+| `authenticate` | function | `def authenticate(*, session, email)` | `login` |
+| `create_item` | function | `def create_item(*, session, item_in)` | — |
+
+### `frontend\src\routes\_layout\items.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\src\components\ui\toaster.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `toaster` | const | — | — |
+| `Toaster` | const | — | `provider` |
+
+### `frontend\src\routes\_layout.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\src\routes\signup.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\tests\config.ts`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `firstSuperuser` | const | — | — |
+| `firstSuperuserPassword` | const | — | — |
+
+---
+
+## Conventions
+
+_Naming patterns and styles. Follow these for consistency._
+
+### File Naming
+
+| Pattern | Example | Count |
+|---------|---------|-------|
+| PascalCase | `ApiError.ts` | 25 |
+| snake_case | `update_dotenv.py` | 14 |
+| kebab-case | `vite-env.d.ts` | 9 |
+| camelCase | `routeTree.gen.ts` | 3 |
+
+### Function Naming
+
+- `delete_*` → `delete_item` (4 occurrences)
+- `update_*` → `update_item` (4 occurrences)
+- `create_*` → `create_item` (3 occurrences)
+- `handle_*` → `handleApiError` (2 occurrences)
+- `is_*` → `isLoggedIn` (1 occurrences)
+
+### Framework Patterns
+
+**React:**
+- Components in `/components` directory
+- Hooks start with `use` prefix (e.g., `useAuth`)
+- State management with hooks or context
+
+# Project Structure
+
+```
+backend/
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── models.py
+│   ├── crud.py
+│   ├── utils.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── deps.py
+│   │   ├── main.py
+│   │   └── routes/
+│   │       ├── __init__.py
+│   │       ├── items.py
+│   │       ├── login.py
+│   │       ├── users.py
+│   │       └── utils.py
+│   └── core/
+│       ├── __init__.py
+│       ├── config.py
+│       ├── db.py
+│       └── security.py
+├── tests/
+│   ├── conftest.py
+│   ├── api/
+│   │   └── routes/
+│   │       ├── test_items.py
+│   │       ├── test_login.py
+│   │       └── test_users.py
+│   └── utils/
+│       ├── item.py
+│       └── user.py
+└── pyproject.toml
+```
+
+# Relevant source files
+
+## backend\app\models.py
+```python
+import uuid
+
+from pydantic import EmailStr
+from sqlmodel import Field, Relationship, SQLModel
+
+
+# Shared properties
+class UserBase(SQLModel):
+    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    is_active: bool = True
+    is_superuser: bool = False
+    full_name: str | None = Field(default=None, max_length=255)
+
+
+# Properties to receive via API on creation
+class UserCreate(UserBase):
+    password: str = Field(min_length=8, max_length=128)
+
+
+class UserRegister(SQLModel):
+    email: EmailStr = Field(max_length=255)
+    password: str = Field(min_length=8, max_length=128)
+    full_name: str | None = Field(default=None, max_length=255)
+
+
+# Properties to receive via API on update, all are optional
+class UserUpdate(UserBase):
+    email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
+    password: str | None = Field(default=None, min_length=8, max_length=128)
+
+
+class UserUpdateMe(SQLModel):
+    full_name: str | None = Field(default=None, max_length=255)
+    email: EmailStr | None = Field(default=None, max_length=255)
+
+
+class UpdatePassword(SQLModel):
+    current_password: str = Field(min_length=8, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+# Database model, database table inferred from class name
+class User(UserBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    hashed_password: str
+    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+
+
+# Properties to return via API, id is always required
+class UserPublic(UserBase):
+    id: uuid.UUID
+
+
+class UsersPublic(SQLModel):
+    data: list[UserPublic]
+    count: int
+
+
+# Shared properties
+class ItemBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+
+
+# Properties to receive on item creation
+class ItemCreate(ItemBase):
+    pass
+
+
+# Properties to receive on item update
+class ItemUpdate(ItemBase):
+    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+
+
+# Database model, database table inferred from class name
+class Item(ItemBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    owner: User | None = Relationship(back_populates="items")
+
+
+# Properties to return via API, id is always required
+class ItemPublic(ItemBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+
+
+class ItemsPublic(SQLModel):
+    data: list[ItemPublic]
+    count: int
+
+
+# Generic message
+class Message(SQLModel):
+    message: str
+
+
+# JSON payload containing access token
+class Token(SQLModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+# Contents of JWT token
+class TokenPayload(SQLModel):
+    sub: str | None = None
+
+
+class NewPassword(SQLModel):
+    token: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+```
+
+## backend\app\crud.py
+```python
+import uuid
+from typing import Any
+
+from sqlmodel import Session, select
+
+from app.core.security import get_password_hash, verify_password
+from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+
+
+def create_user(*, session: Session, user_create: UserCreate) -> User:
+    db_obj = User.model_validate(
+        user_create, update={"hashed_password": get_password_hash(user_create.password)}
+    )
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+    return db_obj
+
+
+def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
+    user_data = user_in.model_dump(exclude_unset=True)
+    extra_data = {}
+    if "password" in user_data:
+        password = user_data["password"]
+        hashed_password = get_password_hash(password)
+        extra_data["hashed_password"] = hashed_password
+    db_user.sqlmodel_update(user_data, update=extra_data)
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return db_user
+
+
+def get_user_by_email(*, session: Session, email: str) -> User | None:
+    statement = select(User).where(User.email == email)
+    session_user = session.exec(statement).first()
+    return session_user
+
+
+def authenticate(*, session: Session, email: str, password: str) -> User | None:
+    db_user = get_user_by_email(session=session, email=email)
+    if not db_user:
+        return None
+    if not verify_password(password, db_user.hashed_password):
+        return None
+    return db_user
+
+
+def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -> Item:
+    db_item = Item.model_validate(item_in, update={"owner_id": owner_id})
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+```
+
+## backend\app\api\deps.py
+```python
+from collections.abc import Generator
+from typing import Annotated
+
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jwt.exceptions import InvalidTokenError
+from pydantic import ValidationError
+from sqlmodel import Session
+
+from app.core import security
+from app.core.config import settings
+from app.core.db import engine
+from app.models import TokenPayload, User
+
+reusable_oauth2 = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+)
+
+
+def get_db() -> Generator[Session, None, None]:
+    with Session(engine) as session:
+        yield session
+
+
+SessionDep = Annotated[Session, Depends(get_db)]
+TokenDep = Annotated[str, Depends(reusable_oauth2)]
+
+
+def get_current_user(session: SessionDep, token: TokenDep) -> User:
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except (InvalidTokenError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+    user = session.get(User, token_data.sub)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return user
+
+
+CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_current_active_superuser(current_user: CurrentUser) -> User:
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="The user doesn't have enough privileges"
+        )
+    return current_user
+
+```
+
+## backend\app\core\config.py
+```python
+import secrets
+import warnings
+from typing import Annotated, Any, Literal
+
+from pydantic import (
+    AnyUrl,
+    BeforeValidator,
+    EmailStr,
+    HttpUrl,
+    PostgresDsn,
+    computed_field,
+    model_validator,
+)
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing_extensions import Self
+
+
+def parse_cors(v: Any) -> list[str] | str:
+    if isinstance(v, str) and not v.startswith("["):
+        return [i.strip() for i in v.split(",") if i.strip()]
+    elif isinstance(v, list | str):
+        return v
+    raise ValueError(v)
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        # Use top level .env file (one level above ./backend/)
+        env_file="../.env",
+        env_ignore_empty=True,
+        extra="ignore",
+    )
+    API_V1_STR: str = "/api/v1"
+    SECRET_KEY: str = secrets.token_urlsafe(32)
+    # 60 minutes * 24 hours * 8 days = 8 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    FRONTEND_HOST: str = "http://localhost:5173"
+    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+
+    BACKEND_CORS_ORIGINS: Annotated[
+        list[AnyUrl] | str, BeforeValidator(parse_cors)
+    ] = []
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def all_cors_origins(self) -> list[str]:
+        return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
+            self.FRONTEND_HOST
+        ]
+
+    PROJECT_NAME: str
+    SENTRY_DSN: HttpUrl | None = None
+    POSTGRES_SERVER: str
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_DB: str = ""
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+        return PostgresDsn.build(
+            scheme="postgresql+psycopg",
+            username=self.POSTGRES_USER,
+            password=self.POSTGRES_PASSWORD,
+            host=self.POSTGRES_SERVER,
+            port=self.POSTGRES_PORT,
+            path=self.POSTGRES_DB,
+        )
+
+    SMTP_TLS: bool = True
+    SMTP_SSL: bool = False
+    SMTP_PORT: int = 587
+    SMTP_HOST: str | None = None
+    SMTP_USER: str | None = None
+    SMTP_PASSWORD: str | None = None
+    EMAILS_FROM_EMAIL: EmailStr | None = None
+    EMAILS_FROM_NAME: EmailStr | None = None
+
+    @model_validator(mode="after")
+    def _set_default_emails_from(self) -> Self:
+        if not self.EMAILS_FROM_NAME:
+            self.EMAILS_FROM_NAME = self.PROJECT_NAME
+        return self
+
+    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def emails_enabled(self) -> bool:
+        return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
+
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
+    FIRST_SUPERUSER: EmailStr
+    FIRST_SUPERUSER_PASSWORD: str
+
+    def _check_default_secret(self, var_name: str, value: str | None) -> None:
+        if value == "changethis":
+            message = (
+                f'The value of {var_name} is "changethis", '
+                "for security, please change it, at least for deployments."
+            )
+            if self.ENVIRONMENT == "local":
+                warnings.warn(message, stacklevel=1)
+            else:
+                raise ValueError(message)
+
+    @model_validator(mode="after")
+    def _enforce_non_default_secrets(self) -> Self:
+        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
+        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
+        self._check_default_secret(
+            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
+        )
+
+        return self
+
+
+settings = Settings()  # type: ignore
+
+```
+
+## backend\app\api\routes\items.py
+```python
+import csv
+import io
+import uuid
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
+from sqlmodel import func, select
+
+from app.api.deps import CurrentUser, SessionDep
+from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
+
+router = APIRouter(prefix="/items", tags=["items"])
+
+
+@router.get("/", response_model=ItemsPublic)
+def read_items(
+    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+) -> Any:
+    """
+    Retrieve items.
+    """
+
+    if current_user.is_superuser:
+        count_statement = select(func.count()).select_from(Item)
+        count = session.exec(count_statement).one()
+        statement = select(Item).offset(skip).limit(limit)
+        items = session.exec(statement).all()
+    else:
+        count_statement = (
+            select(func.count())
+            .select_from(Item)
+            .where(Item.owner_id == current_user.id)
+        )
+        count = session.exec(count_statement).one()
+        statement = (
+            select(Item)
+            .where(Item.owner_id == current_user.id)
+            .offset(skip)
+            .limit(limit)
+        )
+        items = session.exec(statement).all()
+
+    return ItemsPublic(data=items, count=count)
+
+
+@router.get("/{id}", response_model=ItemPublic)
+def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+    """
+    Get item by ID.
+    """
+    item = session.get(Item, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    return item
+
+
+@router.post("/", response_model=ItemPublic)
+def create_item(
+    *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate
+) -> Any:
+    """
+    Create new item.
+    """
+    item = Item.model_validate(item_in, update={"owner_id": current_user.id})
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return item
+
+
+@router.put("/{id}", response_model=ItemPublic)
+def update_item(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    id: uuid.UUID,
+    item_in: ItemUpdate,
+) -> Any:
+    """
+    Update an item.
+    """
+    item = session.get(Item, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    update_dict = item_in.model_dump(exclude_unset=True)
+    item.sqlmodel_update(update_dict)
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return item
+
+
+@router.delete("/{id}")
+def delete_item(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Message:
+    """
+    Delete an item.
+    """
+    item = session.get(Item, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    session.delete(item)
+    session.commit()
+    return Message(message="Item deleted successfully")
+
+
+@router.get("/export/csv")
+def export_items_csv(session: SessionDep, current_user: CurrentUser) -> StreamingResponse:
+    """
+    Export user's items as CSV file.
+    """
+    # Get all items for the current user (no pagination for export)
+    if current_user.is_superuser:
+        statement = select(Item)
+        items = session.exec(statement).all()
+        filename = "all_items.csv"
+    else:
+        statement = select(Item).where(Item.owner_id == current_user.id)
+        items = session.exec(statement).all()
+        filename = "my_items.csv"
+
+    # Create CSV content in memory
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header row with all item fields
+    writer.writerow(["id", "title", "description", "owner_id"])
+    
+    # Write data rows
+    for item in items:
+        writer.writerow([
+            str(item.id),
+            item.title,
+            item.description or "",  # Handle None values
+            str(item.owner_id)
+        ])
+    
+    # Create streaming response
+    output.seek(0)
+    response = StreamingResponse(
+        io.BytesIO(output.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+    
+    return response
+```
+
+# Request
+
+Add an endpoint to export the user's items as a CSV file. Should include all 
+item fields and return a proper file download with the right content type.
+
+# Output Format
+
+Provide complete updated files with filepath headers:
+
+```python
+// filepath: backend/app/path/to/file.py
+<complete file content - no placeholders>
+```

@@ -1,0 +1,51 @@
+id: streaming-file-upload
+name: "Add streaming file upload with progress"
+description: |
+  ## Background
+  Users need to upload large files (documents, images) attached to items.
+  Currently there's no file upload support, and when added it should handle
+  large files without loading them entirely into memory.
+  
+  ## Problem
+  Large file uploads (>100MB) would cause memory issues if loaded entirely.
+  Users also want to see upload progress for large files.
+  
+  ## Task
+  Add streaming file upload support:
+  
+  1. Create POST /api/v1/items/{item_id}/attachments endpoint
+  2. Accept multipart/form-data with file upload
+  3. Stream the upload to disk in chunks (don't load entire file to memory)
+  4. Store files in a configurable UPLOAD_DIR (default: ./uploads)
+  5. Create an Attachment model linked to Item
+  6. Return upload progress via custom header or response metadata
+  7. Limit file size to 100MB (configurable via settings)
+  
+  ## Acceptance Criteria
+  - Large files don't cause memory spikes
+  - Files are saved with unique names to avoid collisions
+  - Attachment is linked to the item in the database
+  - File size limit is enforced
+  - Proper error messages for too-large files
+  - Returns attachment info including file size
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_file_upload.py -v"
+difficulty: hard
+tags:
+  - file-upload
+  - streaming
+  - items
+  - attachments
+
+baseline_prompt_hint: |
+  Add a streaming file upload endpoint for item attachments.
+  Handle large files without loading them entirely into memory.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand Item model dependencies
+  - .aspect/hotspots.md - check impact of modifying models.py
+  - .aspect/architecture.md - find the right location for attachment logic
+  
+  Add file upload with proper streaming to avoid memory issues.

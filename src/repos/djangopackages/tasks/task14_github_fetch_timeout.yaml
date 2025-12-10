@@ -1,0 +1,40 @@
+id: github-fetch-timeout
+name: "GitHub API timeout handling"
+description: |
+  ## Background
+  Package metadata fetching from GitHub can hang if the API is slow.
+  Need proper timeout handling to prevent blocking.
+  
+  ## Problem
+  Repository fetch operations may not have proper timeout handling,
+  causing worker processes to hang.
+  
+  ## Task
+  1. Add configurable timeout to GitHub API requests (default 15s)
+  2. Handle timeout gracefully without crashing
+  3. Record fetch failures with reason in a new field
+  4. Add a `last_fetch_status` field to Package model
+  
+  ## Acceptance Criteria
+  - GitHub requests timeout after configurable duration
+  - Timeouts are handled without crashing
+  - last_fetch_status shows "success", "timeout", or "error"
+  - Timeout value is configurable via settings
+  - Previous data is preserved on fetch failure
+
+repo_path: ./
+test_command: "pytest repos/djangopackages/tests/test_aspect_bench_external_api.py::TestGitHubTimeout -v"
+difficulty: medium
+tags:
+  - reliability
+  - timeout
+  - external-api
+  - github
+
+baseline_prompt_hint: |
+  Add timeout handling to GitHub API fetch operations.
+  Track fetch status in a new model field.
+
+aspect_prompt_hint: |
+  Review package/repos.py for GitHub API calls.
+  Add timeout parameters and status tracking.

@@ -1,0 +1,50 @@
+id: external-service-retry
+name: "Add retry mechanism for external service calls"
+description: |
+  ## Background
+  The application makes calls to external services (email sending, etc.)
+  that can fail transiently. Currently, a single failure results in a
+  500 error returned to the user.
+  
+  ## Problem
+  Transient failures in external services (network blips, temporary overload)
+  cause unnecessary errors for users. These should be retried automatically.
+  
+  ## Task
+  Create a retry mechanism for external service calls:
+  
+  1. Create a reusable retry decorator/utility in app/utils/retry.py
+  2. Support configurable retry count (default: 3)
+  3. Use exponential backoff between retries (1s, 2s, 4s)
+  4. Only retry on specific exceptions (connection errors, timeouts)
+  5. Apply to email sending function in app/utils.py
+  6. Log each retry attempt
+  
+  ## Acceptance Criteria
+  - Retry decorator/utility is reusable
+  - Exponential backoff is implemented
+  - Non-retryable errors (like validation errors) fail immediately
+  - Retry attempts are logged
+  - Final failure after all retries returns appropriate error
+  - Existing tests continue to pass
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_retry.py -v"
+difficulty: medium
+tags:
+  - retry
+  - resilience
+  - external-services
+  - utils
+
+baseline_prompt_hint: |
+  Create a retry mechanism with exponential backoff for external service
+  calls. Make it reusable and apply it to email sending.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand which modules call external services
+  - .aspect/architecture.md - find the right place for retry utilities
+  - .aspect/flows.md - trace email and external service flows
+  
+  Create a clean, reusable retry pattern.

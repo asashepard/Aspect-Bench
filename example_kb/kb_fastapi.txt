@@ -1,0 +1,482 @@
+# architecture.md
+
+# Architecture
+
+_Read this first. Describes the project layout and "Do Not Break" zones._
+
+**Files:** 123 | **Dependencies:** 317 | **Cycles:** 7
+
+## ⚠️ High-Risk Architectural Hubs
+
+> **These files are architectural load-bearing walls.**
+> Modify with extreme caution. Do not change signatures without checking `map.md`.
+
+| Rank | File | Imports | Imported By | Issues | Risk |
+|------|------|---------|-------------|--------|------|
+| 1 | `backend\app\models.py` | 0 | 34 | 21 | 🔴 High |
+| 2 | `backend\app\core\config.py` | 1 | 23 | 7 | 🔴 High |
+| 3 | `backend\app\api\routes\users.py` | 17 | 0 | 20 | 🟡 Medium |
+| 4 | `backend\app\core\security.py` | 3 | 22 | 3 | 🔴 High |
+| 5 | `backend\app\api\routes\login.py` | 21 | 1 | 9 | 🟡 Medium |
+| 6 | `backend\app\api\deps.py` | 13 | 10 | 2 | 🔴 High |
+| 7 | `backend\app\core\db.py` | 8 | 10 | 3 | 🔴 High |
+| 8 | `backend\app\utils.py` | 7 | 7 | 6 | 🟡 Medium |
+| 9 | `backend\app\crud.py` | 5 | 9 | 5 | 🔴 High |
+| 10 | `frontend\src\client\core\request.ts` | 5 | 4 | 11 | 🟡 Medium |
+| 11 | `backend\app\api\routes\items.py` | 8 | 0 | 10 | 🟡 Medium |
+| 12 | `backend\app\initial_data.py` | 2 | 9 | 3 | 🔴 High |
+
+### Hub Details
+
+**1. `backend\app\models.py`** (34 importers)
+Imported by:
+- `backend\app\crud.py`
+- `backend\app\crud.py`
+- `backend\app\api\deps.py`
+- `backend\app\api\deps.py`
+- `backend\app\core\db.py`
+- _...and 29 more_
+
+**2. `backend\app\core\config.py`** (23 importers)
+Imported by:
+- `backend\app\api\deps.py`
+- `backend\app\api\deps.py`
+- `backend\app\main.py`
+- `backend\app\utils.py`
+- `backend\app\utils.py`
+- _...and 18 more_
+
+**3. `backend\app\api\routes\users.py`** (0 importers)
+
+## Entry Points
+
+_Where requests enter the system._
+
+**API Routes:** 23 endpoints
+- `backend\app\api\routes\items.py`: GET / → read_items
+- `backend\app\api\routes\items.py`: GET /{id} → read_item
+- `backend\app\api\routes\items.py`: POST / → create_item
+- `backend\app\api\routes\items.py`: PUT /{id} → update_item
+- `backend\app\api\routes\items.py`: DELETE /{id} → delete_item
+- _...and 18 more_
+
+**Application Entry:**
+- `backend\app\backend_pre_start.py`: Main entry point: main
+- `backend\app\initial_data.py`: Main entry point: main
+- `frontend\src\main.tsx`: Entry point (main)
+- `frontend\src\client\index.ts`: Entry point (index)
+
+## Directory Layout
+
+| Directory | Files | Purpose |
+|-----------|-------|--------|
+| `frontend/` | 3 | Frontend |
+| `frontend\src/` | 5 | Source code |
+| `frontend\src\client/` | 4 | Client code |
+| `frontend\src\routes/` | 6 | General |
+| `frontend\src\hooks/` | 2 | General |
+| `frontend\src\client\core/` | 6 | General |
+| `backend\app/` | 8 | General |
+| `backend\app\api/` | 3 | API layer |
+| `backend\app\core/` | 4 | General |
+| `frontend\src\routes\_layout/` | 4 | General |
+| `backend\app\alembic\versions/` | 4 | General |
+| `backend\app\api\routes/` | 6 | General |
+
+## ⚠️ Circular Dependencies
+
+_Bidirectional imports that create tight coupling._
+
+- `frontend\src\utils.ts` ↔ `frontend\src\utils.ts`
+- `frontend\src\routes\reset-password.tsx` ↔ `frontend\src\routes\reset-password.tsx`
+- `frontend\src\routes\recover-password.tsx` ↔ `frontend\src\routes\recover-password.tsx`
+- `backend\app\initial_data.py` ↔ `backend\app\core\db.py`
+- `backend\app\main.py` ↔ `backend\app\main.py`
+
+## Tests
+
+**Test files:** 13 | **Dirs:** backend\tests\scripts, backend\tests
+
+
+# context.md
+
+# Context
+
+_Data flow and co-location context. Use to understand which files work together._
+
+## Module Clusters
+
+_Files commonly edited/imported together. Use for feature co-location._
+
+### frontend
+
+- `frontend\openapi-ts.config.ts`
+- `backend\app\core\config.py`
+- `backend\app\core\security.py`
+- `backend\app\models.py`
+- `backend\app\alembic\versions\1a31ce608336_add_cascade_delete_relationships.py`
+- `frontend\src\client\core\ApiResult.ts`
+
+### app
+
+- `backend\app\utils.py`
+- `backend\app\models.py`
+- `backend\app\api\deps.py`
+- `backend\app\core\security.py`
+- `backend\app\core\config.py`
+- `backend\app\initial_data.py`
+
+### app
+
+- `backend\app\crud.py`
+- `backend\app\api\deps.py`
+- `backend\app\api\routes\utils.py`
+
+## Critical Flows
+
+_Most central modules by connectivity. Changes here propagate widely._
+
+| Module | Callers | Dependencies |
+|--------|---------|--------------|n| `backend\app\models.py` | 18 | 0 |
+| `backend\app\core\security.py` | 16 | 2 |
+| `backend\app\api\deps.py` | 10 | 11 |
+| `backend\app\core\config.py` | 15 | 1 |
+| `backend\app\core\db.py` | 8 | 6 |
+| `backend\app\api\routes\login.py` | 1 | 18 |
+| `backend\app\utils.py` | 6 | 6 |
+| `backend\app\api\routes\users.py` | 0 | 14 |
+
+## Dependency Chains
+
+_How modules chain together. Useful for tracing data flow._
+
+```
+backend\app\core\security.py → backend\app\core\config.py → frontend\openapi-ts.config.ts
+```
+
+```
+backend\app\core\config.py → frontend\openapi-ts.config.ts
+```
+
+```
+backend\app\api\deps.py → backend\app\core\security.py → backend\app\core\config.py → frontend\openapi-ts.config.ts
+```
+
+## External Integrations
+
+_Connections to external services._
+
+**Database:**
+- `backend\app\core\db.py`: External integration: Database (SQLAlchemy)
+- `backend\app\core\db.py`: External integration: Database (SQLAlchemy)
+
+## Request Flow Pattern
+
+_How a typical request flows through the architecture._
+
+**React Data Flow:**
+```
+Components → Hooks → State/Context → API Calls → Server
+```
+
+---
+
+## Quick Reference
+
+**"What files work together for feature X?"**
+→ Check Module Clusters above.
+
+**"Where does data flow from this endpoint?"**
+→ Check Critical Flows and Dependency Chains.
+
+**"Where are external connections?"**
+→ Check External Integrations.
+
+
+# map.md
+
+# Map
+
+_Symbol index with signatures and conventions. Use to find types, functions, and coding patterns._
+
+## Data Models
+
+_Core data structures. Check these before modifying data handling._
+
+### ORM / Database Models
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserBase
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserRegister
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserUpdateMe
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UpdatePassword
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - UserPublic
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - ItemBase
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - ItemPublic
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - Message
+
+**`backend\app\models.py`**: ORM Model (SQLModel) - TokenPayload
+
+### Pydantic / Data Classes
+
+**`backend\app\api\routes\private.py`**: Data Model (Pydantic) - PrivateUserCreate
+
+**`backend\app\utils.py`**: Data Class (dataclass) - class
+
+### TypeScript Interfaces & Types
+
+**`frontend\src\client\core\ApiRequestOptions.ts`**: Type Alias - ApiRequestOptions
+
+**`frontend\src\client\core\OpenAPI.ts`**: Type Alias - OpenAPIConfig
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - ItemPublic
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - PrivateUserCreate
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - UserCreate
+
+**`frontend\src\client\types.gen.ts`**: Type Alias - UserPublic
+
+**`frontend\src\components\Common\SidebarItems.tsx`**: Interface - Item
+
+### Other Data Structures
+
+- `backend\app\core\config.py`: Data model: Schema (Cerberus)
+- `backend\app\core\config.py`: Data model: Schema (Cerberus)
+- `backend\tests\api\routes\test_benchmark_tasks.py`: Data model: Schema (Marshmallow)
+- `frontend\src\components\ui\toaster.tsx`: Data model: Schema (io-ts)
+- `frontend\src\routes\_layout\admin.tsx`: Data model: Schema (Zod)
+- `frontend\src\routes\_layout\items.tsx`: Data model: Schema (Zod)
+
+## Symbol Index
+
+_Functions, classes, and exports with call relationships._
+
+### `backend\app\models.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `UserBase` | class | `class UserBase(SQLModel)` | — |
+| `UserCreate` | class | `class UserCreate(UserBase)` | `db`, `db` |
+| `UserRegister` | class | `class UserRegister(SQLModel)` | — |
+| `UserUpdate` | class | `class UserUpdate(UserBase)` | `crud`, `crud` |
+| `UserUpdateMe` | class | `class UserUpdateMe(SQLModel)` | — |
+| `UpdatePassword` | class | `class UpdatePassword(SQLModel)` | — |
+| `User` | class | `class User(UserBase)` | `db`, `db` |
+| `UserPublic` | class | `class UserPublic(UserBase)` | `login`, `login` |
+| `UsersPublic` | class | `class UsersPublic(SQLModel)` | — |
+| `ItemBase` | class | `class ItemBase(SQLModel)` | — |
+| `ItemCreate` | class | `class ItemCreate(ItemBase)` | `items`, `items` |
+| `ItemUpdate` | class | `class ItemUpdate(ItemBase)` | `items`, `items` |
+
+_+7 more symbols_
+
+### `backend\app\core\config.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `parse_cors` | function | `def parse_cors(v)` | — |
+| `Settings` | class | `class Settings(BaseSettings)` | — |
+
+### `backend\app\api\routes\users.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `read_users` | function | `def read_users(session, skip, limit)` | — |
+| `create_user` | function | `def create_user(*, session, user_in)` | — |
+| `read_user_me` | function | `def read_user_me(current_user)` | — |
+| `delete_user_me` | function | `def delete_user_me(session, current_user)` | — |
+| `register_user` | function | `def register_user(session, user_in)` | — |
+
+### `backend\app\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `EmailData` | class | `class EmailData` | — |
+| `render_email_template` | function | `def render_email_template(*, template_name, context)` | — |
+| `generate_test_email` | function | `def generate_test_email(email_to)` | `utils` |
+| `generate_reset_password_email` | function | `def generate_reset_password_email(email_to, email, token)` | — |
+| `generate_password_reset_token` | function | `def generate_password_reset_token(email)` | — |
+| `verify_password_reset_token` | function | `def verify_password_reset_token(token)` | — |
+
+### `backend\app\core\db.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init_db` | function | `def init_db(session)` | `initial_data`, `initial_data` |
+
+### `backend\app\api\routes\login.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `test_token` | function | `def test_token(current_user)` | — |
+| `recover_password` | function | `def recover_password(email, session)` | — |
+| `reset_password` | function | `def reset_password(session, body)` | — |
+| `recover_password_html_content` | function | `def recover_password_html_content(email, session)` | — |
+
+### `backend\app\backend_pre_start.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init` | function | `def init(db_engine)` | `main` |
+| `main` | function | `def main()` | — |
+
+### `backend\app\core\security.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `create_access_token` | function | `def create_access_token(subject, expires_delta)` | `login` |
+| `verify_password` | function | `def verify_password(plain_password, hashed_password)` | `users`, `users` |
+| `get_password_hash` | function | `def get_password_hash(password)` | `login`, `login` |
+
+### `backend\app\api\routes\items.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `read_item` | function | `def read_item(session, current_user, id)` | — |
+
+### `backend\app\api\routes\private.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `PrivateUserCreate` | class | `class PrivateUserCreate(BaseModel)` | — |
+| `create_user` | function | `def create_user(user_in, session)` | `db`, `users` |
+
+### `backend\app\api\routes\utils.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `test_email` | function | `def test_email(email_to)` | — |
+
+### `backend\app\api\deps.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `get_db` | function | `def get_db()` | — |
+| `get_current_user` | function | `def get_current_user(session, token)` | — |
+| `get_current_active_superuser` | function | `def get_current_active_superuser(current_user)` | `login`, `login` |
+
+### `backend\app\tests_pre_start.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init` | function | `def init(db_engine)` | — |
+| `main` | function | `def main()` | — |
+
+### `frontend\src\client\core\request.ts`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `isString` | const | — | — |
+| `isStringWithValue` | const | — | — |
+| `isBlob` | const | — | — |
+| `isFormData` | const | — | — |
+| `isSuccess` | const | — | — |
+| `base64` | const | — | — |
+| `getQueryString` | const | — | — |
+| `getFormData` | const | — | — |
+| `resolve` | const | — | — |
+| `getHeaders` | const | — | — |
+| `getRequestBody` | const | — | — |
+| `sendRequest` | const | — | — |
+
+_+4 more symbols_
+
+### `frontend\src\routes\_layout\admin.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\src\client\core\OpenAPI.ts`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Interceptors` | class | `class Interceptors` | — |
+| `OpenAPIConfig` | type | `type OpenAPIConfig` | — |
+| `OpenAPI` | const | — | `sdk.gen` |
+
+### `backend\app\initial_data.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `init` | function | `def init()` | — |
+| `main` | function | `def main()` | — |
+
+### `backend\app\crud.py`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `create_user` | function | `def create_user(*, session, user_create)` | — |
+| `update_user` | function | `def update_user(*, session, db_user)` | — |
+| `get_user_by_email` | function | `def get_user_by_email(*, session, email)` | `login`, `users` |
+| `authenticate` | function | `def authenticate(*, session, email)` | `login` |
+| `create_item` | function | `def create_item(*, session, item_in)` | — |
+
+### `frontend\src\routes\_layout\items.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\src\components\ui\toaster.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `toaster` | const | — | — |
+| `Toaster` | const | — | `provider` |
+
+### `frontend\src\routes\_layout.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\src\routes\signup.tsx`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `Route` | const | — | — |
+
+### `frontend\tests\config.ts`
+
+| Symbol | Kind | Signature | Called By |
+|--------|------|-----------|----------|
+| `firstSuperuser` | const | — | — |
+| `firstSuperuserPassword` | const | — | — |
+
+---
+
+## Conventions
+
+_Naming patterns and styles. Follow these for consistency._
+
+### File Naming
+
+| Pattern | Example | Count |
+|---------|---------|-------|
+| PascalCase | `ApiError.ts` | 25 |
+| snake_case | `update_dotenv.py` | 14 |
+| kebab-case | `vite-env.d.ts` | 9 |
+| camelCase | `routeTree.gen.ts` | 3 |
+
+### Function Naming
+
+- `delete_*` → `delete_item` (4 occurrences)
+- `update_*` → `update_item` (4 occurrences)
+- `create_*` → `create_item` (3 occurrences)
+- `handle_*` → `handleApiError` (2 occurrences)
+- `is_*` → `isLoggedIn` (1 occurrences)
+
+### Framework Patterns
+
+**React:**
+- Components in `/components` directory
+- Hooks start with `use` prefix (e.g., `useAuth`)
+- State management with hooks or context

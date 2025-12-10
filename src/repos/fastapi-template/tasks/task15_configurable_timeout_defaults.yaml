@@ -1,0 +1,52 @@
+id: api-timeout-configuration
+name: "Add configurable timeout defaults via settings"
+description: |
+  ## Background
+  The application makes external HTTP calls (email services, webhooks, etc.)
+  but timeouts are hardcoded or use library defaults. In production, we need
+  to configure these via environment variables.
+  
+  ## Problem
+  Different deployment environments have different network characteristics.
+  Corporate proxies are slow, cloud environments are fast. We need configurable
+  timeouts without code changes.
+  
+  ## Task
+  Add configurable timeout settings:
+  
+  1. Add to app/core/config.py:
+     - HTTP_CONNECT_TIMEOUT: float = 5.0
+     - HTTP_READ_TIMEOUT: float = 30.0
+     - HTTP_POOL_TIMEOUT: float = 10.0
+     - DB_QUERY_TIMEOUT: float = 30.0
+  2. Update any HTTP client usage to use these settings
+  3. Add database query timeout where applicable
+  4. Document the new settings
+  
+  ## Acceptance Criteria
+  - Timeouts are configurable via environment variables
+  - HTTP client calls use configured timeouts
+  - Settings have sensible defaults
+  - Settings are validated (must be positive numbers)
+  - Timeout errors return appropriate HTTP status
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_timeout_defaults.py -v"
+difficulty: easy
+tags:
+  - config
+  - timeout
+  - settings
+  - http
+
+baseline_prompt_hint: |
+  Add configurable timeout settings to the application config.
+  Apply them to HTTP clients and document the new settings.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand what uses config.py
+  - .aspect/hotspots.md - config.py likely has many dependents
+  - .aspect/architecture.md - confirm settings location
+  
+  Add timeout configuration without breaking existing settings validation.

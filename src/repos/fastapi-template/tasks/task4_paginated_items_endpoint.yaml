@@ -1,0 +1,61 @@
+id: paginated-items-endpoint
+name: "Paginated items endpoint"
+description: |
+  ## Background
+  The items list endpoint needs proper pagination support for production use.
+  While there are `skip` and `limit` parameters, they lack proper validation
+  and the response doesn't include pagination metadata.
+  
+  ## Problem
+  Current issues with `/api/v1/items/`:
+  1. No maximum limit enforcement (client can request limit=1000000)
+  2. Negative values for skip/limit are not properly handled
+  3. Response doesn't include pagination info (total count, pages, etc.)
+  
+  ## Task
+  Enhance the items list endpoint with proper pagination:
+  
+  1. Add validation:
+     - `limit` must be between 1 and 100 (default: 20)
+     - `offset` must be >= 0 (default: 0)
+     - Invalid values return 422 with clear error message
+  
+  2. Update response to include pagination metadata:
+     ```json
+     {
+       "data": [...],
+       "count": 150,
+       "limit": 20,
+       "offset": 0,
+       "has_more": true
+     }
+     ```
+  
+  ## Acceptance Criteria
+  - Default limit is 20, max is 100
+  - Negative offset returns 422
+  - Limit > 100 is clamped to 100 (or returns 422)
+  - Response includes `limit`, `offset`, and `has_more` fields
+  - Existing tests continue to work
+
+repo_path: ./backend
+test_command: "pytest backend/tests/api/routes/test_aspect_bench_pagination.py -v"
+difficulty: medium
+tags:
+  - api
+  - pagination
+  - items
+  - validation
+
+baseline_prompt_hint: |
+  Add proper pagination to the items list endpoint with limit/offset validation
+  and enhanced response metadata including has_more indicator.
+
+aspect_prompt_hint: |
+  Before making changes, read the Aspect Code KB files:
+  - .aspect/deps.md - understand what depends on ItemsPublic model
+  - .aspect/flows.md - trace how items are fetched and returned
+  - .aspect/findings_top.md - check for related issues
+  
+  Use this knowledge to add pagination without breaking existing consumers
+  of the items endpoint.
