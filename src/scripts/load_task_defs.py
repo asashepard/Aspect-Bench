@@ -8,10 +8,10 @@ Usage:
     from load_task_defs import load_task, list_tasks, get_task_by_id
 """
 
-import os
-import yaml
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
+
+import yaml
 
 # Paths
 SCRIPT_DIR = Path(__file__).parent
@@ -52,17 +52,17 @@ def get_benchmarks_root() -> Path:
     return BENCHMARKS_ROOT.resolve()
 
 
-def get_repo_config(repo_name: str) -> Optional[Dict[str, Any]]:
+def get_repo_config(repo_name: str) -> dict[str, Any] | None:
     """Get configuration for a repository."""
     return REPO_REGISTRY.get(repo_name)
 
 
-def list_repos() -> List[str]:
+def list_repos() -> list[str]:
     """List available repository names."""
     return list(REPO_REGISTRY.keys())
 
 
-def get_repo_root(repo_name: str) -> Optional[Path]:
+def get_repo_root(repo_name: str) -> Path | None:
     """Get the root path for a target repository."""
     config = get_repo_config(repo_name)
     if not config:
@@ -85,7 +85,7 @@ def get_repo_prompts_dir(repo_name: str) -> Path:
     return REPOS_DIR / repo_name / "prompts"
 
 
-def list_task_files(repo_name: str) -> List[Path]:
+def list_task_files(repo_name: str) -> list[Path]:
     """List all YAML task definition files for a repo."""
     tasks_dir = get_repo_tasks_dir(repo_name)
     if not tasks_dir.exists():
@@ -93,34 +93,34 @@ def list_task_files(repo_name: str) -> List[Path]:
     return sorted(tasks_dir.glob("task*.yaml"))
 
 
-def load_task(file_path: Path) -> Dict[str, Any]:
+def load_task(file_path: Path) -> dict[str, Any]:
     """
     Load a single task definition from a YAML file.
-    
+
     Args:
         file_path: Path to the YAML file
-        
+
     Returns:
         Dictionary containing task definition
-        
+
     Raises:
         FileNotFoundError: If file doesn't exist
         yaml.YAMLError: If file is not valid YAML
     """
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding="utf-8") as f:
         task = yaml.safe_load(f)
-    
+
     # Add metadata
-    task['_file'] = str(file_path)
-    task['_filename'] = file_path.name
-    
+    task["_file"] = str(file_path)
+    task["_filename"] = file_path.name
+
     return task
 
 
-def list_tasks(repo_name: str) -> List[Dict[str, Any]]:
+def list_tasks(repo_name: str) -> list[dict[str, Any]]:
     """
     Load all task definitions for a repository.
-    
+
     Returns:
         List of task definition dictionaries
     """
@@ -134,29 +134,29 @@ def list_tasks(repo_name: str) -> List[Dict[str, Any]]:
     return tasks
 
 
-def get_task_by_id(repo_name: str, task_id: str) -> Optional[Dict[str, Any]]:
+def get_task_by_id(repo_name: str, task_id: str) -> dict[str, Any] | None:
     """
     Get a task definition by its ID.
-    
+
     Args:
         repo_name: The repository name
         task_id: The task ID (e.g., "refactor-auth-dependency")
-        
+
     Returns:
         Task definition dict or None if not found
     """
     for task in list_tasks(repo_name):
-        if task.get('id') == task_id:
+        if task.get("id") == task_id:
             return task
     return None
 
 
-def get_task_ids(repo_name: str) -> List[str]:
+def get_task_ids(repo_name: str) -> list[str]:
     """Get list of all task IDs for a repo."""
-    return [task['id'] for task in list_tasks(repo_name)]
+    return [task["id"] for task in list_tasks(repo_name)]
 
 
-def print_task_summary(task: Dict[str, Any]) -> None:
+def print_task_summary(task: dict[str, Any]) -> None:
     """Print a summary of a task."""
     print(f"ID: {task.get('id')}")
     print(f"Name: {task.get('name')}")
@@ -169,47 +169,47 @@ def print_task_summary(task: Dict[str, Any]) -> None:
 def main():
     """CLI: List all tasks or show details for a specific task."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Load and display task definitions")
-    parser.add_argument('--repo', '-r', help="Repository name", default="fastapi-template")
-    parser.add_argument('--task-id', '-t', help="Show details for specific task ID")
-    parser.add_argument('--list', '-l', action='store_true', help="List all task IDs")
-    parser.add_argument('--list-repos', action='store_true', help="List all repositories")
-    parser.add_argument('--verbose', '-v', action='store_true', help="Show full descriptions")
-    
+    parser.add_argument("--repo", "-r", help="Repository name", default="fastapi-template")
+    parser.add_argument("--task-id", "-t", help="Show details for specific task ID")
+    parser.add_argument("--list", "-l", action="store_true", help="List all task IDs")
+    parser.add_argument("--list-repos", action="store_true", help="List all repositories")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Show full descriptions")
+
     args = parser.parse_args()
-    
+
     if args.list_repos:
         print("Available repositories:")
         for repo_name in list_repos():
             config = get_repo_config(repo_name)
             print(f"  - {repo_name}: {config['name']}")
         return
-    
+
     if args.repo not in REPO_REGISTRY:
         print(f"Unknown repo: {args.repo}")
         print(f"Available: {', '.join(list_repos())}")
         exit(1)
-    
+
     if args.list:
         print(f"Available tasks for {args.repo}:")
         for task_id in get_task_ids(args.repo):
             print(f"  - {task_id}")
         return
-    
+
     if args.task_id:
         task = get_task_by_id(args.repo, args.task_id)
         if task:
             print_task_summary(task)
             if args.verbose:
                 print("\nDescription:")
-                print(task.get('description', 'No description'))
+                print(task.get("description", "No description"))
         else:
             print(f"Task not found: {args.task_id}")
             print(f"Available: {', '.join(get_task_ids(args.repo))}")
             exit(1)
         return
-    
+
     # Default: show all tasks
     tasks = list_tasks(args.repo)
     print(f"Found {len(tasks)} tasks for {args.repo}:\n")

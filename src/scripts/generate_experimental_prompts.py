@@ -85,7 +85,7 @@ If these files are NOT provided, proceed using your general coding knowledge.
 
 def read_file(path: Path) -> str:
     """Read a file and return its content."""
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -93,14 +93,14 @@ def extract_agents_md_content(agents_md: str) -> str:
     """Extract the content between ASPECT_CODE_START and ASPECT_CODE_END markers."""
     start_marker = "<!-- ASPECT_CODE_START -->"
     end_marker = "<!-- ASPECT_CODE_END -->"
-    
+
     start_idx = agents_md.find(start_marker)
     end_idx = agents_md.find(end_marker)
-    
+
     if start_idx == -1 or end_idx == -1:
         raise ValueError("Could not find ASPECT_CODE markers in AGENTS.md")
-    
-    content = agents_md[start_idx + len(start_marker):end_idx].strip()
+
+    content = agents_md[start_idx + len(start_marker) : end_idx].strip()
     return content
 
 
@@ -141,13 +141,13 @@ def create_prompt(baseline_path: Path, header: str, output_dir: Path, mode_name:
     task_name = baseline_path.stem.replace("_baseline", "")
     output_filename = f"{task_name}_{mode_name}.txt"
     output_path = output_dir / output_filename
-    
+
     baseline_content = read_file(baseline_path)
     full_content = header + baseline_content
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
+
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(full_content)
-    
+
     print(f"  Created: {output_path.name}")
     return output_path
 
@@ -157,12 +157,12 @@ def generate_no_kb_prompts():
     print("\n" + "=" * 60)
     print("Generating NO_KB prompts (instructions only, no KB content)")
     print("=" * 60)
-    
+
     header = generate_no_kb_header()
     print(f"Header size: {len(header)} chars")
-    
+
     total_created = 0
-    
+
     for repo_name, prompts_dir in [
         ("fastapi-template", FASTAPI_PROMPTS_DIR),
         ("djangopackages", DJANGOPACKAGES_PROMPTS_DIR),
@@ -170,11 +170,11 @@ def generate_no_kb_prompts():
         print(f"\n{repo_name}:")
         baselines = get_baseline_prompts(prompts_dir)
         print(f"  Found {len(baselines)} baseline prompts")
-        
+
         for baseline_path in baselines:
             create_prompt(baseline_path, header, prompts_dir, mode_name="no_kb")
             total_created += 1
-    
+
     print(f"\n✓ Generated {total_created} no_kb prompts")
     return total_created
 
@@ -184,51 +184,51 @@ def generate_swapped_prompts():
     print("\n" + "=" * 60)
     print("Generating SWAPPED prompts (cross-repo KBs)")
     print("=" * 60)
-    
+
     # Read the shared AGENTS.md
     agents_md_path = KB_DIR / "AGENTS.md"
     if not agents_md_path.exists():
         print(f"ERROR: Missing {agents_md_path}")
         return 0
-    
+
     agents_md = read_file(agents_md_path)
     agents_content = extract_agents_md_content(agents_md)
     print(f"AGENTS.md content: {len(agents_content)} chars")
-    
+
     # Read both KB files
     fastapi_kb_path = KB_DIR / "kb_fastapi.txt"
     django_kb_path = KB_DIR / "kb_djangopackages.txt"
-    
+
     for path in [fastapi_kb_path, django_kb_path]:
         if not path.exists():
             print(f"ERROR: Missing {path}")
             return 0
-    
+
     fastapi_kb = read_file(fastapi_kb_path)
     django_kb = read_file(django_kb_path)
     print(f"FastAPI KB: {len(fastapi_kb)} chars")
     print(f"Django KB: {len(django_kb)} chars")
-    
+
     total_created = 0
-    
+
     # FastAPI prompts get Django KB
-    print(f"\nfastapi-template (with Django KB):")
+    print("\nfastapi-template (with Django KB):")
     fastapi_header = generate_swapped_kb_header(agents_content, django_kb)
     baselines = get_baseline_prompts(FASTAPI_PROMPTS_DIR)
     print(f"  Found {len(baselines)} baseline prompts")
     for baseline_path in baselines:
         create_prompt(baseline_path, fastapi_header, FASTAPI_PROMPTS_DIR, mode_name="swapped")
         total_created += 1
-    
+
     # Django prompts get FastAPI KB
-    print(f"\ndjangopackages (with FastAPI KB):")
+    print("\ndjangopackages (with FastAPI KB):")
     django_header = generate_swapped_kb_header(agents_content, fastapi_kb)
     baselines = get_baseline_prompts(DJANGOPACKAGES_PROMPTS_DIR)
     print(f"  Found {len(baselines)} baseline prompts")
     for baseline_path in baselines:
         create_prompt(baseline_path, django_header, DJANGOPACKAGES_PROMPTS_DIR, mode_name="swapped")
         total_created += 1
-    
+
     print(f"\n✓ Generated {total_created} swapped prompts")
     return total_created
 
@@ -243,21 +243,21 @@ def main():
         help="Which experimental mode to generate (default: both)",
     )
     args = parser.parse_args()
-    
+
     print("=" * 60)
     print("Generating Experimental Prompt Sets")
     print("=" * 60)
     print(f"KB directory: {KB_DIR}")
     print(f"Mode: {args.mode}")
-    
+
     total = 0
-    
+
     if args.mode in ("no_kb", "both"):
         total += generate_no_kb_prompts()
-    
+
     if args.mode in ("swapped", "both"):
         total += generate_swapped_prompts()
-    
+
     print("\n" + "=" * 60)
     print(f"DONE! Total prompts generated: {total}")
     print("=" * 60)

@@ -32,7 +32,7 @@ DJANGOPACKAGES_PROMPTS_DIR = HARNESS_DIR / "repos" / "djangopackages" / "prompts
 
 def read_file(path: Path) -> str:
     """Read a file and return its content."""
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -40,15 +40,15 @@ def extract_agents_md_content(agents_md: str) -> str:
     """Extract the content between ASPECT_CODE_START and ASPECT_CODE_END markers."""
     start_marker = "<!-- ASPECT_CODE_START -->"
     end_marker = "<!-- ASPECT_CODE_END -->"
-    
+
     start_idx = agents_md.find(start_marker)
     end_idx = agents_md.find(end_marker)
-    
+
     if start_idx == -1 or end_idx == -1:
         raise ValueError("Could not find ASPECT_CODE markers in AGENTS.md")
-    
+
     # Include the content between markers (excluding markers themselves)
-    content = agents_md[start_idx + len(start_marker):end_idx].strip()
+    content = agents_md[start_idx + len(start_marker) : end_idx].strip()
     return content
 
 
@@ -85,17 +85,17 @@ def create_aspect_prompt(baseline_path: Path, kb_header: str, output_dir: Path, 
     task_name = baseline_path.stem.replace("_baseline", "")
     output_filename = f"{task_name}_{mode_name}.txt"
     output_path = output_dir / output_filename
-    
+
     # Read the baseline content
     baseline_content = read_file(baseline_path)
-    
+
     # Combine KB header with baseline content
     full_content = kb_header + baseline_content
-    
+
     # Write the new prompt
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(full_content)
-    
+
     print(f"Created: {output_path.name}")
     return output_path
 
@@ -165,7 +165,9 @@ def main():
         kb_header = generate_kb_header(agents_content, kb_content)
         print(f"  - KB header: {len(kb_header)} chars")
 
-        prompts_dir = FASTAPI_PROMPTS_DIR if repo_name == "fastapi-template" else DJANGOPACKAGES_PROMPTS_DIR
+        prompts_dir = (
+            FASTAPI_PROMPTS_DIR if repo_name == "fastapi-template" else DJANGOPACKAGES_PROMPTS_DIR
+        )
         print(f"\n{'=' * 60}")
         print(f"Generating {repo_name} prompts (*_{mode_name}.txt)...")
         print("=" * 60)

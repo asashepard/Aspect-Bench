@@ -55,15 +55,34 @@ jobs:
           import yaml
           from pathlib import Path
           
-          required_fields = ['id', 'title', 'description', 'test_command']
+          required_fields = ['id', 'description', 'repo_path', 'test_command']
           errors = []
           
           for task_file in Path('src/repos').rglob('tasks/*.yaml'):
-              with open(task_file) as f:
-                  task = yaml.safe_load(f)
-              for field in required_fields:
-                  if field not in task:
-                      errors.append(f'{task_file}: missing {field}')
+            try:
+              with open(task_file, encoding='utf-8') as f:
+                task = yaml.safe_load(f)
+            except Exception as e:
+              errors.append(f'{task_file}: YAML parse error: {e}')
+              continue
+
+            if not isinstance(task, dict):
+              errors.append(f'{task_file}: expected a mapping at top-level')
+              continue
+
+            # Backwards/forwards compatible: allow either `name` or `title`.
+            if 'name' not in task and 'title' not in task:
+              errors.append(f"{task_file}: missing name/title")
+
+            for field in required_fields:
+              if field not in task:
+                errors.append(f'{task_file}: missing {field}')
+
+            if 'id' in task and not isinstance(task['id'], str):
+              errors.append(f"{task_file}: id must be a string")
+
+            if 'test_command' in task and not isinstance(task['test_command'], str):
+              errors.append(f"{task_file}: test_command must be a string")
           
           if errors:
               for e in errors:
