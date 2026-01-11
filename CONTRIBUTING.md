@@ -59,7 +59,7 @@ Create the benchmark harness files in `src/repos/`:
 src/repos/your-repo/
 ├── prompts/                 # Generated prompts will go here
 ├── tasks/
-│   └── task_defs.yaml       # Task definitions
+│   └── task01_some_task.yaml # Task definitions (one YAML file per task)
 └── tests/
     └── conftest.py          # Test fixtures
 ```
@@ -70,36 +70,25 @@ src/repos/your-repo/
 
 ### Task Definition Format
 
-Create tasks in `src/repos/<repo>/tasks/task_defs.yaml`:
+Create tasks as one YAML file per task in `src/repos/<repo>/tasks/`:
 
 ```yaml
-tasks:
-  - id: task-descriptive-name    # Use kebab-case, descriptive names
-    name: "Short descriptive title"
-    description: |
-      Clear description of what the LLM should implement.
-      Include:
-      - The specific feature or fix needed
-      - Expected behavior
-      - Any constraints or edge cases
-    
-    category: "feature|bugfix|refactor|test"
-    difficulty: "easy|medium|hard"
-    
-    files_to_modify:
-      - "path/to/main_file.py"
-      - "path/to/related_file.py"
-    
-    test_files:
-      - "tests/test_feature.py"
-    
-    test_markers:
-      - "test_specific_function"    # pytest -k marker
+id: task-descriptive-name
+name: "Short descriptive title"
+description: |
+  Clear description of what the LLM should implement.
+
+repo_path: ./backend
+test_command: "pytest path/to/test_file.py -v"
+
+difficulty: easy|medium|hard
+tags:
+  - feature|bugfix|refactor
 ```
 
 ### Prompt Format
 
-**Baseline prompt** (`prompts/baseline/<task_id>.txt`):
+**Baseline prompt** (`prompts/<task_id>_baseline.txt`):
 ```
 You are an expert software developer. Complete the following task:
 
@@ -111,7 +100,7 @@ Modify the following files as needed:
 Respond with the complete modified file contents.
 ```
 
-**Aspect KB prompt** (`prompts/aspect_kb3/<task_id>.txt`):
+**KB prompt** (`prompts/<task_id>_aspect.txt`):
 ```
 You are an expert software developer working on [Project Name].
 

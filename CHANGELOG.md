@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Experimental prompt modes: `no_kb` (instructions only) and `swapped` (cross-repo KB)
 
 ### Infrastructure
-- GitHub Actions CI pipeline with linting and validation
 - Comprehensive documentation (README, CONTRIBUTING)
 - Task definition YAML schema
 - Prompt generation scripts

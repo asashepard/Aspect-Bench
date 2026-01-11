@@ -2,7 +2,11 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please report it by emailing the maintainers directly rather than opening a public issue.
+If you discover a security vulnerability, please avoid posting details publicly.
+
+Preferred: open a private GitHub Security Advisory for this repository.
+
+If you are unsure whether something is security-sensitive, err on the side of reporting privately.
 
 ## API Keys
 
