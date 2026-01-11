@@ -51,23 +51,23 @@ jobs:
       
       - name: Validate YAML task files
         run: |
-          python -c "
+          python - <<'PY'
           import yaml
           from pathlib import Path
-          
+
           required_fields = ['id', 'description', 'repo_path', 'test_command']
           errors = []
-          
+
           for task_file in Path('src/repos').rglob('tasks/*.yaml'):
             try:
               with open(task_file, encoding='utf-8') as f:
                 task = yaml.safe_load(f)
             except Exception as e:
-              errors.append(f'{task_file}: YAML parse error: {e}')
+              errors.append(f"{task_file}: YAML parse error: {e}")
               continue
 
             if not isinstance(task, dict):
-              errors.append(f'{task_file}: expected a mapping at top-level')
+              errors.append(f"{task_file}: expected a mapping at top-level")
               continue
 
             # Backwards/forwards compatible: allow either `name` or `title`.
@@ -76,18 +76,18 @@ jobs:
 
             for field in required_fields:
               if field not in task:
-                errors.append(f'{task_file}: missing {field}')
+                errors.append(f"{task_file}: missing {field}")
 
             if 'id' in task and not isinstance(task['id'], str):
               errors.append(f"{task_file}: id must be a string")
 
             if 'test_command' in task and not isinstance(task['test_command'], str):
               errors.append(f"{task_file}: test_command must be a string")
-          
+
           if errors:
-              for e in errors:
-                  print(f'ERROR: {e}')
-              exit(1)
-          else:
-              print('All task definitions valid!')
-          "
+            for e in errors:
+              print(f"ERROR: {e}")
+            raise SystemExit(1)
+
+          print('All task definitions valid!')
+          PY
