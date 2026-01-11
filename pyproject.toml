@@ -1,0 +1,58 @@
+[project]
+name = "aspect-bench"
+version = "1.0.0"
+description = "A/B Testing Framework for LLM Code Generation with Knowledge Base Context"
+readme = "README.md"
+license = { file = "LICENSE.md" }
+requires-python = ">=3.11"
+authors = [
+    { name = "Asa Shepard" }
+]
+keywords = ["llm", "benchmark", "code-generation", "testing", "ai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "anthropic>=0.18.0",
+    "openai>=1.12.0",
+    "pytest>=8.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.3.0",
+    "mypy>=1.8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/asashepard/aspect-bench"
+Documentation = "https://github.com/asashepard/aspect-bench#readme"
+Repository = "https://github.com/asashepard/aspect-bench.git"
+Issues = "https://github.com/asashepard/aspect-bench/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

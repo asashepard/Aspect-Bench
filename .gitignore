@@ -2,12 +2,26 @@
 # Aspect Code Benchmark - .gitignore
 # ===========================================
 
-# Environment & Secrets
+# =====================
+# SECRETS & CREDENTIALS
+# =====================
 .env
 .env.*
+.env.local
+.env.*.local
 !.env.example
+*.pem
+*.key
+*secret*
+*credential*
+*password*
+# API keys should NEVER be committed
+*api_key*
+*apikey*
 
-# Experiment Outputs (generated results)
+# =====================
+# EXPERIMENT OUTPUTS
+# =====================
 # Keep the folders but ignore their contents
 /src/results/*
 !/src/results/.gitkeep
@@ -16,7 +30,15 @@
 /src/reports/*
 !/src/reports/.gitkeep
 
-# Python Cache
+# =====================
+# GENERATED PROMPTS
+# =====================
+# Prompts are generated from task_defs.yaml; don’t commit generated .txt outputs.
+/src/repos/**/prompts/*.txt
+
+# =====================
+# PYTHON
+# =====================
 **/__pycache__/
 *.py[cod]
 *$py.class
@@ -27,14 +49,28 @@ dist/
 build/
 eggs/
 *.egg
+.venv/
+venv/
+ENV/
+env/
+.conda/
 
-# Pytest Cache
+# =====================
+# TESTING
+# =====================
 **/.pytest_cache/
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
 
-# IDE & Editor
+# =====================
+# IDE & EDITOR
+# =====================
 .vscode/
 .idea/
 *.swp
@@ -43,8 +79,11 @@ htmlcov/
 .project
 .pydevproject
 .settings/
+*.sublime-*
 
-# OS Files
+# =====================
+# OS FILES
+# =====================
 .DS_Store
 .DS_Store?
 ._*
@@ -52,14 +91,33 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Misc
+# =====================
+# MISC
+# =====================
 *.log
 *.tmp
 *.temp
+*.bak
+*.backup
+
+# Aspect Code extension output (generated)
+.aspect/
 
 # Archive folders
 **/_archive/
 
-# Cloned target repositories
+# Internal/dev scripts (prefixed with underscore)
+/src/scripts/_*.py
+
+# =====================
+# CLONED REPOSITORIES
+# =====================
+# Target repos are cloned here - never commit
 /repos/**
+
+# =====================
+# NEW_KB (user experiments)
+# =====================
+# Local/experimental KB workbench (not part of the public harness)
+/new_kb/
 

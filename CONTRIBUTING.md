@@ -176,8 +176,8 @@ python src/scripts/run_tests_for_task.py --repo your-repo --task your-task-id
 ### 1. Fork and Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/aspect-code-bench.git
-cd aspect-code-bench
+git clone https://github.com/YOUR_USERNAME/aspect-bench.git
+cd aspect-bench
 ```
 
 ### 2. Create a Branch

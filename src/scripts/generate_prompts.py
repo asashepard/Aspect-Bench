@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""
-generate_prompts.py - Generate prompts with knowledge base context.
+"""src/scripts/generate_prompts.py
 
-Reads the baseline prompts and creates new aspect_kb3 prompts by prepending
-the AGENTS.md content and respective kb_*.txt content from example_kb folder.
+Generate prompt files with knowledge base context.
+
+By default, reads baseline prompts and creates `*_aspect.txt` prompts by
+prepending agent instructions + KB content from `example_kb/`.
+
+This script also supports generating prompts for a single repo and/or from an
+alternate KB directory (e.g. a new KB edition).
 
 Usage:
-    python generate_prompts.py
+    python src/scripts/generate_prompts.py
+    python src/scripts/generate_prompts.py --repo fastapi-template --kb-dir new_kb --mode-name aspect_kb_new
 """
 
-import os
+import argparse
 from pathlib import Path
 
 # Paths
@@ -17,11 +22,8 @@ SCRIPT_DIR = Path(__file__).parent
 HARNESS_DIR = SCRIPT_DIR.parent
 PROJECT_ROOT = HARNESS_DIR.parent  # aspect-code-bench root
 
-# KB content files from example_kb folder
-EXAMPLE_KB_DIR = PROJECT_ROOT / "example_kb"
-AGENTS_MD_PATH = EXAMPLE_KB_DIR / "AGENTS.md"
-KB_FASTAPI_PATH = EXAMPLE_KB_DIR / "kb_fastapi.txt"
-KB_DJANGOPACKAGES_PATH = EXAMPLE_KB_DIR / "kb_djangopackages.txt"
+# Default KB content files from example_kb folder
+DEFAULT_KB_DIR = PROJECT_ROOT / "example_kb"
 
 # Prompt directories
 FASTAPI_PROMPTS_DIR = HARNESS_DIR / "repos" / "fastapi-template" / "prompts"
@@ -77,11 +79,11 @@ def extract_baseline_content(baseline_path: Path) -> str:
     return content
 
 
-def create_aspect_prompt(baseline_path: Path, kb_header: str, output_dir: Path):
-    """Create a new aspect prompt from a baseline prompt."""
+def create_aspect_prompt(baseline_path: Path, kb_header: str, output_dir: Path, mode_name: str):
+    """Create a new prompt for `mode_name` from a baseline prompt."""
     # Get the task name from the baseline filename
     task_name = baseline_path.stem.replace("_baseline", "")
-    output_filename = f"{task_name}_aspect.txt"
+    output_filename = f"{task_name}_{mode_name}.txt"
     output_path = output_dir / output_filename
     
     # Read the baseline content
@@ -98,64 +100,86 @@ def create_aspect_prompt(baseline_path: Path, kb_header: str, output_dir: Path):
     return output_path
 
 
+def _kb_paths_for_repo(kb_dir: Path, repo_name: str) -> tuple[Path, Path]:
+    """Return (agents_md_path, kb_txt_path) for a repo from the given kb_dir."""
+    agents_md_path = kb_dir / "AGENTS.md"
+    if repo_name == "fastapi-template":
+        kb_txt_path = kb_dir / "kb_fastapi.txt"
+    elif repo_name == "djangopackages":
+        kb_txt_path = kb_dir / "kb_djangopackages.txt"
+    else:
+        # Fall back to a conventional name: kb_<repo>.txt
+        kb_txt_path = kb_dir / f"kb_{repo_name}.txt"
+    return agents_md_path, kb_txt_path
+
+
 def main():
-    """Generate aspect prompts for all repos."""
+    """Generate prompts for one or more repos."""
+    parser = argparse.ArgumentParser(description="Generate prompts with KB context")
+    parser.add_argument(
+        "--repo",
+        choices=["fastapi-template", "djangopackages"],
+        help="Generate prompts for a single repo (default: both)",
+    )
+    parser.add_argument(
+        "--kb-dir",
+        default=str(DEFAULT_KB_DIR),
+        help="KB directory containing AGENTS.md and kb_*.txt (default: example_kb)",
+    )
+    parser.add_argument(
+        "--mode-name",
+        default="aspect",
+        help="Prompt mode suffix to generate (default: aspect)",
+    )
+    args = parser.parse_args()
+
+    kb_dir = Path(args.kb_dir)
+    mode_name = args.mode_name.strip()
+    if not mode_name:
+        raise ValueError("--mode-name cannot be empty")
+
     print("=" * 60)
-    print("Generating Aspect Code prompts (from example_kb/)")
+    print(f"Generating prompts (kb_dir={kb_dir}, mode={mode_name})")
     print("=" * 60)
-    
-    # Verify source files exist
-    print("\nChecking source files...")
-    for path in [AGENTS_MD_PATH, KB_FASTAPI_PATH, KB_DJANGOPACKAGES_PATH]:
-        if not path.exists():
-            print(f"ERROR: Missing file: {path}")
-            return
-        print(f"  ✓ {path.name}")
-    
-    # Read source files
-    print("\nReading source files...")
-    agents_md = read_file(AGENTS_MD_PATH)
-    kb_fastapi = read_file(KB_FASTAPI_PATH)
-    kb_djangopackages = read_file(KB_DJANGOPACKAGES_PATH)
-    
-    # Extract AGENTS.md content
-    agents_content = extract_agents_md_content(agents_md)
-    print(f"  - AGENTS.md content extracted ({len(agents_content)} chars)")
-    
-    # Generate KB headers
-    fastapi_header = generate_kb_header(agents_content, kb_fastapi)
-    djangopackages_header = generate_kb_header(agents_content, kb_djangopackages)
-    
-    print(f"  - FastAPI KB header: {len(fastapi_header)} chars")
-    print(f"  - DjangoPackages KB header: {len(djangopackages_header)} chars")
-    
-    # Generate FastAPI prompts
+
+    repos_to_generate = [args.repo] if args.repo else ["fastapi-template", "djangopackages"]
+    total_created = 0
+
+    for repo_name in repos_to_generate:
+        agents_md_path, kb_txt_path = _kb_paths_for_repo(kb_dir, repo_name)
+
+        print("\nChecking source files...")
+        for path in [agents_md_path, kb_txt_path]:
+            if not path.exists():
+                print(f"ERROR: Missing file: {path}")
+                return
+            print(f"  ✓ {path}")
+
+        print("\nReading source files...")
+        agents_md = read_file(agents_md_path)
+        kb_content = read_file(kb_txt_path)
+
+        agents_content = extract_agents_md_content(agents_md)
+        print(f"  - AGENTS.md content extracted ({len(agents_content)} chars)")
+
+        kb_header = generate_kb_header(agents_content, kb_content)
+        print(f"  - KB header: {len(kb_header)} chars")
+
+        prompts_dir = FASTAPI_PROMPTS_DIR if repo_name == "fastapi-template" else DJANGOPACKAGES_PROMPTS_DIR
+        print(f"\n{'=' * 60}")
+        print(f"Generating {repo_name} prompts (*_{mode_name}.txt)...")
+        print("=" * 60)
+
+        baselines = get_baseline_prompts(prompts_dir)
+        print(f"Found {len(baselines)} baseline prompts")
+
+        for baseline_path in baselines:
+            create_aspect_prompt(baseline_path, kb_header, prompts_dir, mode_name=mode_name)
+            total_created += 1
+
     print(f"\n{'=' * 60}")
-    print("Generating FastAPI template prompts (*_aspect.txt)...")
-    print("=" * 60)
-    
-    fastapi_baselines = get_baseline_prompts(FASTAPI_PROMPTS_DIR)
-    print(f"Found {len(fastapi_baselines)} baseline prompts")
-    
-    for baseline_path in fastapi_baselines:
-        create_aspect_prompt(baseline_path, fastapi_header, FASTAPI_PROMPTS_DIR)
-    
-    # Generate DjangoPackages prompts
-    print(f"\n{'=' * 60}")
-    print("Generating DjangoPackages prompts (*_aspect.txt)...")
-    print("=" * 60)
-    
-    djangopackages_baselines = get_baseline_prompts(DJANGOPACKAGES_PROMPTS_DIR)
-    print(f"Found {len(djangopackages_baselines)} baseline prompts")
-    
-    for baseline_path in djangopackages_baselines:
-        create_aspect_prompt(baseline_path, djangopackages_header, DJANGOPACKAGES_PROMPTS_DIR)
-    
-    print(f"\n{'=' * 60}")
-    print("Done! Generated prompts:")
-    print(f"  - FastAPI: {len(fastapi_baselines)} prompts (*_aspect.txt)")
-    print(f"  - DjangoPackages: {len(djangopackages_baselines)} prompts (*_aspect.txt)")
-    print(f"  - Total: {len(fastapi_baselines) + len(djangopackages_baselines)} prompts")
+    print("Done!")
+    print(f"Generated: {total_created} prompts (*_{mode_name}.txt)")
     print("=" * 60)
 
 

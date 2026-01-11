@@ -35,7 +35,7 @@ from load_task_defs import (
 
 # Configuration
 LLM_TEMPERATURE = 0.0  # Use 0 for reproducibility
-MODES = ["baseline", "aspect"]  # A/B modes to compare
+DEFAULT_MODES = ["baseline", "aspect"]  # Default A/B modes to compare
 
 # Try to import LLM clients
 try:
@@ -143,6 +143,13 @@ def load_prompt(task_id: str, repo_name: str, mode: str = "aspect") -> Optional[
     if prompt_file.exists():
         with open(prompt_file, 'r', encoding='utf-8') as f:
             return f.read()
+
+    print(
+        f"  ✗ Missing prompt file: {prompt_file}\n"
+        "    Generate prompts first:\n"
+        "      python src/scripts/generate_prompts.py\n"
+        "    (This repo does not commit generated prompt .txt files.)"
+    )
     return None
 
 
@@ -390,8 +397,10 @@ def run_aspect_experiment(
     provider: str = "anthropic",
     model: Optional[str] = None,
     task_ids: Optional[List[str]] = None,
+    modes: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    """Run A/B experiment comparing baseline vs aspect across specified repos."""
+    """Run an experiment across repos for one or more prompt modes."""
+    modes = modes or DEFAULT_MODES
     experiment_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_name = model or ("claude-sonnet-4-20250514" if provider == "anthropic" else "gpt-4o")
     
@@ -401,13 +410,13 @@ def run_aspect_experiment(
         "provider": provider,
         "model": model_name,
         "temperature": LLM_TEMPERATURE,
-        "modes": MODES,
+        "modes": modes,
         "started_at": datetime.now().isoformat(),
         "tasks": [],
-        "summary": {mode: {"total": 0, "passed": 0, "failed": 0, "errors": 0} for mode in MODES},
-        "output_stats": {mode: {"tokens": 0, "code_lines": 0, "lines_added": 0} for mode in MODES},
-        "test_improvements": {mode: 0 for mode in MODES},
-        "true_regressions": {mode: 0 for mode in MODES},
+        "summary": {mode: {"total": 0, "passed": 0, "failed": 0, "errors": 0} for mode in modes},
+        "output_stats": {mode: {"tokens": 0, "code_lines": 0, "lines_added": 0} for mode in modes},
+        "test_improvements": {mode: 0 for mode in modes},
+        "true_regressions": {mode: 0 for mode in modes},
     }
     
     print("\n" + "=" * 75)
@@ -418,7 +427,7 @@ def run_aspect_experiment(
     print(f"Provider:      {provider}")
     print(f"Model:         {model_name}")
     print(f"Temperature:   {LLM_TEMPERATURE}")
-    print(f"Modes:         {' vs '.join(MODES)}")
+    print(f"Modes:         {' vs '.join(modes)}")
     print("=" * 75)
     
     all_tasks_to_run = []
@@ -443,7 +452,7 @@ def run_aspect_experiment(
         
         task_results = {"task_id": task_id, "task_name": task_name, "repo": repo_name}
         
-        for mode in MODES:
+        for mode in modes:
             print(f"\n  [{mode.upper()}]")
             
             task_result = run_single_task(
@@ -511,7 +520,11 @@ def run_aspect_experiment(
     results["total_elapsed_seconds"] = round((end - start).total_seconds(), 2)
     
     # Save results
-    results_file = get_results_dir() / f"aspect_ab_experiment_{experiment_id}.json"
+    # Keep legacy name only for the default A/B run to avoid breaking existing tooling.
+    if modes == DEFAULT_MODES:
+        results_file = get_results_dir() / f"aspect_ab_experiment_{experiment_id}.json"
+    else:
+        results_file = get_results_dir() / f"benchmark_experiment_{experiment_id}.json"
     results_file.write_text(json.dumps(results, indent=2), encoding="utf-8")
     
     # Print summary
@@ -524,7 +537,7 @@ def run_aspect_experiment(
     print()
     print(f"{'Mode':<15} {'Tasks OK':<10} {'Failed':<10} {'Errors':<10} {'Tests Fixed':<12} {'True Reg.':<10}")
     print("-" * 75)
-    for mode in MODES:
+    for mode in modes:
         s = results["summary"][mode]
         tests_fixed = results["test_improvements"][mode]
         true_reg = results["true_regressions"][mode]
@@ -532,47 +545,46 @@ def run_aspect_experiment(
         print(f"{mode:<15} {s['passed']:<10} {s['failed']:<10} {s['errors']:<10} {tests_str:<12} {true_reg:<10}")
     print("-" * 75)
     
-    # Output stats comparison
+    # Output stats
     print()
     print("📈 OUTPUT STATISTICS:")
     print()
-    print(f"{'Metric':<25} {'Baseline':>12} {'Aspect':>12} {'Delta':>10}")
+    print(f"{'Mode':<20} {'Chars':>12} {'Code Lines':>12} {'Lines Added':>12}")
     print("-" * 60)
-    b_out = results["output_stats"]["baseline"]
-    a_out = results["output_stats"]["aspect"]
-    print(f"{'Output Characters':<25} {b_out['tokens']:>12,} {a_out['tokens']:>12,} {a_out['tokens'] - b_out['tokens']:>+10,}")
-    print(f"{'Response Code Lines':<25} {b_out['code_lines']:>12,} {a_out['code_lines']:>12,} {a_out['code_lines'] - b_out['code_lines']:>+10,}")
-    print(f"{'Lines Added to Repo':<25} {b_out['lines_added']:>12,} {a_out['lines_added']:>12,} {a_out['lines_added'] - b_out['lines_added']:>+10,}")
+    for mode in modes:
+        out = results["output_stats"][mode]
+        print(f"{mode:<20} {out['tokens']:>12,} {out['code_lines']:>12,} {out['lines_added']:>12,}")
     print("-" * 60)
-    
-    # Comparison
-    baseline_tests_fixed = results["test_improvements"]["baseline"]
-    aspect_tests_fixed = results["test_improvements"]["aspect"]
-    baseline_true_regressions = results["true_regressions"]["baseline"]
-    aspect_true_regressions = results["true_regressions"]["aspect"]
 
-    print()
-    print("📊 COMPARISON:")
-    print()
-    print("  Test Improvements:")
-    print(f"    Baseline fixed:     {baseline_tests_fixed:+d} tests")
-    print(f"    Aspect fixed:       {aspect_tests_fixed:+d} tests")
-    if baseline_tests_fixed > 0:
-        improvement = ((aspect_tests_fixed - baseline_tests_fixed) / baseline_tests_fixed) * 100
-        print(f"    Aspect advantage:   {improvement:+.1f}%")
-    elif aspect_tests_fixed > baseline_tests_fixed:
-        print(f"    Aspect advantage:   +{aspect_tests_fixed - baseline_tests_fixed} more tests fixed")
-    
-    print()
-    print("  True Regressions (bugs in unmodified code):")
-    print(f"    Baseline:     {baseline_true_regressions}")
-    print(f"    Aspect:       {aspect_true_regressions}")
-    if baseline_true_regressions > aspect_true_regressions:
-        print(f"    ✅ Aspect caused {baseline_true_regressions - aspect_true_regressions} fewer regressions!")
-    elif aspect_true_regressions > baseline_true_regressions:
-        print(f"    ⚠️ Aspect caused {aspect_true_regressions - baseline_true_regressions} more regressions")
-    else:
-        print(f"    Tie - both had same regressions")
+    # Only show a delta comparison when the default A/B modes are used.
+    if modes == DEFAULT_MODES:
+        baseline_tests_fixed = results["test_improvements"]["baseline"]
+        aspect_tests_fixed = results["test_improvements"]["aspect"]
+        baseline_true_regressions = results["true_regressions"]["baseline"]
+        aspect_true_regressions = results["true_regressions"]["aspect"]
+
+        print()
+        print("📊 COMPARISON:")
+        print()
+        print("  Test Improvements:")
+        print(f"    Baseline fixed:     {baseline_tests_fixed:+d} tests")
+        print(f"    Aspect fixed:       {aspect_tests_fixed:+d} tests")
+        if baseline_tests_fixed > 0:
+            improvement = ((aspect_tests_fixed - baseline_tests_fixed) / baseline_tests_fixed) * 100
+            print(f"    Aspect advantage:   {improvement:+.1f}%")
+        elif aspect_tests_fixed > baseline_tests_fixed:
+            print(f"    Aspect advantage:   +{aspect_tests_fixed - baseline_tests_fixed} more tests fixed")
+
+        print()
+        print("  True Regressions (bugs in unmodified code):")
+        print(f"    Baseline:     {baseline_true_regressions}")
+        print(f"    Aspect:       {aspect_true_regressions}")
+        if baseline_true_regressions > aspect_true_regressions:
+            print(f"    ✅ Aspect caused {baseline_true_regressions - aspect_true_regressions} fewer regressions!")
+        elif aspect_true_regressions > baseline_true_regressions:
+            print(f"    ⚠️ Aspect caused {aspect_true_regressions - baseline_true_regressions} more regressions")
+        else:
+            print(f"    Tie - both had same regressions")
     
     print()
     print(f"📁 Results saved to: {results_file}")
@@ -615,6 +627,12 @@ def main():
         nargs="+",
         help="Specific task IDs to run (default: all)"
     )
+    parser.add_argument(
+        "--modes",
+        nargs="+",
+        default=None,
+        help="Prompt modes to run (suffixes like baseline, aspect, aspect_kb_new). Default: baseline aspect",
+    )
     
     args = parser.parse_args()
     
@@ -656,6 +674,7 @@ def main():
         provider=args.provider,
         model=args.model,
         task_ids=args.tasks,
+        modes=args.modes,
     )
 
 

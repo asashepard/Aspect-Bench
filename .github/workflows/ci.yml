@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy
+          pip install -e ".[dev]"
+      
+      - name: Run Ruff linter
+        run: ruff check src/scripts/
+      
+      - name: Run Ruff formatter check
+        run: ruff format --check src/scripts/
+      
+      - name: Run MyPy
+        run: mypy src/scripts/ --ignore-missing-imports
+
+  validate:
+    name: Validate Task Definitions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      - name: Validate YAML task files
+        run: |
+          python -c "
+          import yaml
+          from pathlib import Path
+          
+          required_fields = ['id', 'title', 'description', 'test_command']
+          errors = []
+          
+          for task_file in Path('src/repos').rglob('tasks/*.yaml'):
+              with open(task_file) as f:
+                  task = yaml.safe_load(f)
+              for field in required_fields:
+                  if field not in task:
+                      errors.append(f'{task_file}: missing {field}')
+          
+          if errors:
+              for e in errors:
+                  print(f'ERROR: {e}')
+              exit(1)
+          else:
+              print('All task definitions valid!')
+          "
